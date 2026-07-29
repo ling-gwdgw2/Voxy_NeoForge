@@ -1,6 +1,6 @@
-# Voxy NeoForge 1.21.1
+# voxyNeoForge V1 (Minecraft 1.21.1)
 
-> **Unofficial NeoForge port** of the Voxy mod
+> **Unofficial NeoForge port** of the Voxy mod, enhanced with native Iris/Oculus Shader pipeline support, direct Sodium GUI integration, and Radium/Lithium compatibility.
 
 ## Special Thanks
 
@@ -9,7 +9,7 @@
 - **Original Repository:** [MCRcortex/voxy](https://github.com/MCRcortex/voxy)
 - **Original Author:** [MCRcortex](https://github.com/MCRcortex)
 
-This repository is a community port to NeoForge 1.21.1, created because the original author has indicated they will not be backporting to this version. We are deeply grateful for MCRcortex's work on Voxy.
+This repository is a community port to NeoForge 1.21.1, created because the original author indicated they will not be backporting to this version. We are deeply grateful for MCRcortex's work on Voxy.
 
 ## License Notice
 
@@ -19,37 +19,36 @@ The original Voxy mod is licensed under **All Rights Reserved** by MCRcortex. Th
 
 ## About
 
-**Voxy** is a Level-of-Detail (LOD) rendering mod for Minecraft that extends your view distance far beyond vanilla limits by rendering distant terrain at lower detail levels.
+**voxyNeoForge V1** is a Level-of-Detail (LOD) rendering mod for Minecraft NeoForge 1.21.1 that extends your view distance far beyond vanilla limits by rendering distant terrain at lower detail levels using GPU-driven voxel mesh rendering.
+
+## Key Improvements in voxyNeoForge V1
+
+- **✨ Iris & Oculus Shader Support:** Full GLSL pipeline patching, depth buffer attachments, and shadow pass compatibility for Iris and Oculus shaders.
+- **⚙️ Native Direct Sodium GUI Integration:** Automatic injection of Voxy's options tab into Sodium's Video Settings screen without requiring external API mods.
+- **⚡ Radium & Lithium Interop Fix:** Classloader-safe palette conversion supporting both Lithium (`lithium`) and Radium (`radium`) performance mods.
+- **🎨 Custom Branding & Logo:** Refreshed voxyNeoForge V1 visual identity and branding.
 
 ## Why This Port?
-
-You might wonder: "Why not just use the Fabric version with [Sinytra Connector](https://github.com/Sinytra/Connector)?"
 
 | Aspect | Native NeoForge Port (this repo) | Sinytra Connector |
 |--------|----------------------------------|-------------------|
 | **Performance** | No translation overhead | Runtime translation layer |
-| **Mod Integration** | Native NeoForge API calls | Fabric API emulation via FFAPI |
-| **Maintenance** | Must track upstream Voxy changes | Just drop in Fabric jar |
+| **Shader Support** | Native Iris/Oculus GLSL integration | Requires translation bridge |
+| **Mod Integration** | Direct Sodium & NeoForge API calls | Fabric API emulation via FFAPI |
+| **GUI Integration** | Direct Native Injection into Sodium GUI | External API dependency |
 | **Stability** | Tested against NeoForge directly | May have edge cases from translation |
-| **Dependencies** | Forgified Fabric API | Connector + Forgified Fabric API |
 
-**Bottom line:** For a performance-critical LOD mod like Voxy, eliminating the translation layer overhead is worthwhile. If you prioritize simplicity and don't mind potential overhead, Sinytra Connector is a valid alternative.
-
-## Status
-
-**Alpha** - Functional with known limitations.
+## Features
 
 ### Working Features
 - LOD terrain rendering beyond vanilla render distance
 - Smooth transitions between LOD and vanilla chunks
-- Fog integration (disabled at LOD boundaries)
+- **Iris / Oculus Shader Pack Compatibility** (Lighting, shadows, depth cutout)
+- **Direct Sodium Video Settings Integration** (Voxy tab inside Sodium settings)
+- **Radium & Lithium Compatibility** (Support for optimized block state palettes)
 - Block model baking for all render types (solid, cutout, cutout_mipped, translucent)
 - Delayed chunk unloading to prevent pop-out effects
-
-### Current Limitations
-- Requires Sodium 0.6.13+ (NeoForge version)
-- Some optional integrations not yet ported (Iris, Nvidium, Vivecraft)
-- Debug screen integration disabled (MC 1.21.1 API changes)
+- Dynamic LOD sub-division scaling based on realtime FPS
 
 ## Requirements
 
@@ -66,38 +65,35 @@ You might wonder: "Why not just use the Fabric version with [Sinytra Connector](
 
 | Dependency | Purpose | Link |
 |------------|---------|------|
-| Reese's Sodium Options | Better settings UI for Sodium + Voxy config access | [Modrinth](https://modrinth.com/mod/reeses-sodium-options) |
-| Lithium | General performance improvements | [Modrinth](https://modrinth.com/mod/lithium) |
+| Iris / Oculus | Shader pack rendering support | [Modrinth](https://modrinth.com/mod/iris) |
+| Radium / Lithium | General chunk and tick performance improvements | [Modrinth](https://modrinth.com/mod/radium) |
+| Reese's Sodium Options | Enhanced UI layout for Sodium settings | [Modrinth](https://modrinth.com/mod/reeses-sodium-options) |
 
 ## Installation
 
-> **Note:** Due to Voxy's ARR (All Rights Reserved) license, compiled JARs are not distributed. You must build from source.
+> **Note:** Due to Voxy's ARR (All Rights Reserved) license, compiled JARs are built from source.
 
 1. Install NeoForge for Minecraft 1.21.1
 2. Install required dependencies (see above)
-3. Build Voxy from source (see below)
-4. Place the built JAR in your `mods` folder
+3. Build voxyNeoForge V1 from source (see below)
+4. Place the built JAR (`voxyNeoForge-V1-1.0.0.jar`) in your `mods` folder
 
 ## Building from Source
 
 ```bash
-git clone https://github.com/j-shelfwood/voxy-neoforge.git
-cd voxy-neoforge
+git clone https://github.com/ling-gwdgw2/Voxy_NeoForge.git
+cd Voxy_NeoForge
 ./gradlew build
 ```
 
-The built JAR will be in `build/libs/`.
+The built JAR will be located at:
+`build/libs/voxyNeoForge-V1-1.0.0.jar`
 
 ## Contributing
 
-For development guidelines, see [CLAUDE.md](CLAUDE.md).
-
-### Validation Scripts
-
-The `scripts/` directory contains build validation tools used in CI.
+For development guidelines and reference architecture, see [CLAUDE.md](CLAUDE.md).
 
 ## Links
 
 - **Original Voxy:** [github.com/MCRcortex/voxy](https://github.com/MCRcortex/voxy)
-- **This Port:** [github.com/j-shelfwood/voxy-neoforge](https://github.com/j-shelfwood/voxy-neoforge)
-- **Sinytra Connector (alternative):** [github.com/Sinytra/Connector](https://github.com/Sinytra/Connector)
+- **voxyNeoForge V1 Repository:** [github.com/ling-gwdgw2/Voxy_NeoForge](https://github.com/ling-gwdgw2/Voxy_NeoForge)
