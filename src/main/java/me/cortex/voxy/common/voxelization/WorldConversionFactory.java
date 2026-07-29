@@ -3,7 +3,7 @@ package me.cortex.voxy.common.voxelization;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import me.cortex.voxy.common.world.other.Mapper;
 import me.cortex.voxy.common.world.other.Mipper;
-import net.caffeinemc.mods.lithium.common.world.chunk.LithiumHashPalette;
+    // Removed LithiumHashPalette import to avoid classloading errors on Radium
 import net.minecraft.core.Holder;
 import net.neoforged.fml.ModList;
 import net.minecraft.util.SimpleBitStorage;
@@ -65,7 +65,7 @@ public class WorldConversionFactory {
             throw new RuntimeException("Failed to access Data.storage", e);
         }
     }
-    private static final boolean LITHIUM_INSTALLED = ModList.get().isLoaded("lithium");
+    private static final boolean LITHIUM_INSTALLED = ModList.get().isLoaded("lithium") || ModList.get().isLoaded("radium");
 
     private static final class Cache {
         private final int[] biomeCache = new int[4*4*4];
@@ -86,7 +86,7 @@ public class WorldConversionFactory {
     private static final ThreadLocal<Cache> THREAD_LOCAL = ThreadLocal.withInitial(Cache::new);
 
     private static boolean setupLithiumLocalPallet(Palette<BlockState> vp, Reference2IntOpenHashMap<BlockState> blockCache, Mapper mapper, int[] pc)  {
-        if (vp instanceof LithiumHashPalette<BlockState>) {
+        if (vp.getClass().getSimpleName().equals("LithiumHashPalette")) {
             for (int i = 0; i < vp.getSize(); i++) {
                 BlockState state = null;
                 int blockId = -1;

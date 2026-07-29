@@ -231,12 +231,15 @@ jar {
     }
 }
 
+def pythonExe = System.properties['os.name'].toLowerCase().contains('windows') ? 'python' : 'python3'
+
 // Validate mixin configuration (registration, exclusions, remap flags)
 task validateMixinConfig(type: Exec) {
     description = 'Validates mixin registration, exclusions, and configuration'
     group = 'verification'
 
-    commandLine 'python3', 'scripts/validate_mixin_config.py'
+    commandLine pythonExe, 'scripts/validate_mixin_config.py'
+    environment 'PYTHONIOENCODING', 'utf-8'
 
     // Only run if script exists
     onlyIf {
@@ -249,7 +252,8 @@ task validateMixinSignatures(type: Exec) {
     description = 'Validates @Inject/@Shadow targets against Minecraft source'
     group = 'verification'
 
-    commandLine 'python3', 'scripts/validate_mixin_targets.py'
+    commandLine pythonExe, 'scripts/validate_mixin_targets.py'
+    environment 'PYTHONIOENCODING', 'utf-8'
 
     // Only run if script and MC sources exist
     onlyIf {
@@ -270,9 +274,9 @@ task validateMixins(type: Exec) {
 
     commandLine 'bash', 'scripts/validate_mixins.sh'
 
-    // Only run if script exists
+    // Only run if script exists and not on Windows (where bash might be missing)
     onlyIf {
-        file('scripts/validate_mixins.sh').exists()
+        file('scripts/validate_mixins.sh').exists() && !System.properties['os.name'].toLowerCase().contains('windows')
     }
 }
 
@@ -377,19 +381,20 @@ tasks.register('extractLwjglNatives') {
             def inputJar = artifact.file
             logger.lifecycle("Extracting natives from ${inputJar.name}")
 
-            // Extract only native binaries (.dll, .so, .dylib)
-            copy {
-                from(zipTree(inputJar)) {
-                    include '**/*.dll'
-                    include '**/*.so'
-                    include '**/*.dylib'
-                    // Flatten directory structure - put all natives at root
-                    eachFile { fcp ->
-                        fcp.relativePath = new RelativePath(true, fcp.name)
+            // Extract only native binaries (.dll, .so, .dylib) using ZipInputStream to avoid Invalid Timestamp error
+            inputJar.withInputStream { is ->
+                def zis = new java.util.zip.ZipInputStream(is)
+                def entry
+                while ((entry = zis.nextEntry) != null) {
+                    if (!entry.isDirectory() && (entry.name.endsWith('.dll') || entry.name.endsWith('.so') || entry.name.endsWith('.dylib'))) {
+                        def fileName = new File(entry.name).name
+                        def outFile = new File(outputDir, fileName)
+                        outFile.withOutputStream { os ->
+                            os << zis
+                        }
                     }
-                    includeEmptyDirs = false
+                    zis.closeEntry()
                 }
-                into outputDir
             }
         }
 

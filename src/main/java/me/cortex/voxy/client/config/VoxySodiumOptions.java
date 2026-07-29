@@ -31,7 +31,7 @@ public class VoxySodiumOptions {
         OptionGUIConstruction.EVENT.register(VoxySodiumOptions::addVoxyPage);
     }
 
-    private static void addVoxyPage(List<OptionPage> pages) {
+    public static void addVoxyPage(List<OptionPage> pages) {
         VoxyConfigStorage storage = new VoxyConfigStorage();
 
         pages.add(new OptionPage(

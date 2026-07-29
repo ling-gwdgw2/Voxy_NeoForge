@@ -6,7 +6,7 @@ issueTrackerURL="https://github.com/MCRcortex/voxy/issues"
 [[mods]]
 modId="voxy"
 version="${version}"
-displayName="Voxy"
+displayName="voxyNeoForge V1"
 description="Far distance rendering mod utilising LoDs"
 authors="Cortex"
 logoFile="assets/voxy/icon.png"
