@@ -59,10 +59,13 @@ public class VoxyUniforms {
 
         if (IrisShaderPatch.IMPERSONATE_DISTANT_HORIZONS) {
             uniforms
-                    .uniform1f(PER_FRAME, "dhNearPlane", ()->16)//Presently hardcoded in voxy
-                    .uniform1f(PER_FRAME, "dhFarPlane", ()->16*3000)//Presently hardcoded in voxy
-
-                    .uniform1i(PER_FRAME, "dhRenderDistance", ()-> VoxyConfig.CONFIG.sectionRenderDistance*32*16)//In blocks
+                    .uniform1f(PER_FRAME, "dhNearPlane", () -> 0.05f)
+                    .uniform1f(PER_FRAME, "dhFarPlane", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32.0f)
+                    .uniform1i(PER_FRAME, "dhRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32)
+                    .uniform1i(PER_FRAME, "dhMinRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32)
+                    .uniform1i(PER_FRAME, "dhMaxRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32)
+                    .uniform1f(PER_FRAME, "dhMinFogDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32.0f * 0.75f)
+                    .uniform1f(PER_FRAME, "dhMaxFogDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32.0f)
                     .uniformMatrix(PER_FRAME, "dhProjection", VoxyUniforms::getProjection)
                     .uniformMatrix(PER_FRAME, "dhProjectionInverse", new Inverted(VoxyUniforms::getProjection))
                     .uniformMatrix(PER_FRAME, "dhPreviousProjection", new PreviousMat(VoxyUniforms::getProjection));
