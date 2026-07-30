@@ -21,8 +21,7 @@
     "sodium.MixinDefaultChunkRenderer",
     "sodium.MixinRenderSectionManager",
     "sodium.MixinSodiumOptionsGUI",
-    "sodium.MixinSodiumWorldRenderer",
-    "iris.MixinStandardMacros"
+    "sodium.MixinSodiumWorldRenderer"
   ],
   "injectors": {
     "defaultRequire": 1
