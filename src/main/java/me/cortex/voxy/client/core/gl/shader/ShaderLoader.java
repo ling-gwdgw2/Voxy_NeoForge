@@ -1,8 +1,6 @@
 package me.cortex.voxy.client.core.gl.shader;
 
 
-import net.caffeinemc.mods.sodium.client.gl.shader.ShaderConstants;
-import net.caffeinemc.mods.sodium.client.gl.shader.ShaderParser;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -41,22 +39,15 @@ public class ShaderLoader {
         // Load shader source using Voxy's classloader (NeoForge classloader isolation fix)
         String shaderSource = getShaderSource(id);
 
-        // Process any nested #import directives recursively
+        // Process nested #import directives recursively (Standalone Voxy parser)
         shaderSource = processImports(shaderSource);
 
-        // Match upstream format: "\n" + content + "\n//beans"
-        // The leading \n is critical for the regex to work
-        String processed = "\n" + shaderSource + "\n//beans";
-
-        // Apply Sodium's shader constants processing (handles #define etc.)
-        processed = ShaderParser.parseShader(processed, ShaderConstants.builder().build());
-
         // Normalize line endings and strip original #version (upstream behavior)
-        processed = processed.replaceAll("\r\n", "\n");
-        processed = processed.replaceFirst("\n#version .+\n", "\n");
+        shaderSource = shaderSource.replaceAll("\r\n", "\n");
+        shaderSource = shaderSource.replaceFirst("\n#version .+\n", "\n");
 
-        // Prepend our target GLSL version
-        return "#version 460 core\n" + processed;
+        // Prepend target GLSL 4.6 version
+        return "#version 460 core\n" + shaderSource;
     }
 
     /**
