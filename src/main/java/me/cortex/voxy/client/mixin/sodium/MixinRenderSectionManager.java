@@ -37,18 +37,30 @@ public class MixinRenderSectionManager {
 
     @Shadow @Final private ChunkBuilder builder;
 
-    // Sodium 0.6.13: Constructor signature is (ClientLevel, int, CommandList)
-    // SortBehavior parameter removed in Sodium 0.6.x
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void voxy$resetChunkTracker(ClientLevel level, int renderDistance, CommandList commandList, CallbackInfo ci) {
-        if (level.levelRenderer != null) {
-            var system = ((IGetVoxyRenderSystem)(level.levelRenderer)).getVoxyRenderSystem();
+    // Sodium 0.6.13: (ClientLevel, int, CommandList)
+    @Inject(method = "<init>(Lnet/minecraft/client/multiplayer/ClientLevel;ILnet/caffeinemc/mods/sodium/client/gl/device/CommandList;)V", at = @At("TAIL"), require = 0)
+    private void voxy$resetChunkTracker_legacy(ClientLevel level, int renderDistance, CommandList commandList, CallbackInfo ci) {
+        this.voxy$doReset();
+    }
+
+    // Sodium 0.8.12+: (ClientLevel, int, SortBehavior, CommandList)
+    @Inject(method = "<init>(Lnet/minecraft/client/multiplayer/ClientLevel;ILnet/caffeinemc/mods/sodium/client/render/chunk/translucent_sorting/SortBehavior;Lnet/caffeinemc/mods/sodium/client/gl/device/CommandList;)V", at = @At("TAIL"), require = 0)
+    private void voxy$resetChunkTracker_v08(ClientLevel level, int renderDistance, SortBehavior sortBehavior, CommandList commandList, CallbackInfo ci) {
+        this.voxy$doReset();
+    }
+
+    @Unique
+    private void voxy$doReset() {
+        if (this.level != null && this.level.levelRenderer != null) {
+            var system = ((IGetVoxyRenderSystem)(this.level.levelRenderer)).getVoxyRenderSystem();
             if (system != null) {
                 system.chunkBoundRenderer.reset();
             }
         }
-        // MC 1.21.1: Use getMinBuildHeight() instead of getMinY()
-        this.bottomSectionY = ((net.minecraft.world.level.Level)this.level).getMinBuildHeight()>>4;
+        if (this.level != null) {
+            // MC 1.21.1: Use getMinBuildHeight() instead of getMinY()
+            this.bottomSectionY = ((net.minecraft.world.level.Level)this.level).getMinBuildHeight() >> 4;
+        }
     }
 
     @Inject(method = "onChunkRemoved", at = @At("HEAD"))
