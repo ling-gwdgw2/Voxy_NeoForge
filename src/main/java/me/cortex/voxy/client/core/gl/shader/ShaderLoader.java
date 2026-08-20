@@ -10,44 +10,37 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * NeoForge-compatible shader loader for Voxy.
+ * Self-contained NeoForge-compatible shader loader for Voxy.
  *
- * On Fabric, Sodium's ShaderLoader.getShaderSource() uses a flat classloader that can
- * access all mod resources. On NeoForge, each mod has an isolated classloader, so
- * Sodium's classloader cannot access Voxy's shader resources.
- *
- * This loader bypasses Sodium's resource loading and uses Voxy's own classloader.
+ * This loader uses Voxy's isolated classloader and internal recursive #import
+ * resolver, eliminating direct dependencies on Sodium's internal ShaderParser/ShaderConstants
+ * APIs. This ensures rock-solid compatibility across Sodium 0.6.x, Sodium 0.8.12+, and Iris 1.8.14+.
  *
  * Upstream reference: https://github.com/MCRcortex/voxy
- * See: src/main/java/me/cortex/voxy/client/core/gl/shader/ShaderLoader.java
  */
 public class ShaderLoader {
     private static final Pattern IMPORT_PATTERN = Pattern.compile("#import <(?<namespace>.*):(?<path>.*)>");
 
     /**
-     * Parse and load a shader, matching upstream Voxy behavior.
-     *
-     * Upstream code:
-     *   return "#version 460 core\n" + ShaderParser.parseShader(
-     *       "\n#import <" + id + ">\n//beans", ShaderConstants.builder().build()
-     *   ).src().replaceAll("\r\n", "\n").replaceFirst("\n#version .+\n", "\n");
-     *
-     * The key is the leading "\n" before #import - this ensures the regex
-     * "\n#version .+\n" can match the #version directive in the loaded shader.
+     * Parse and load a shader, resolving all recursive #import directives
+     * and ensuring valid GLSL 460 core versioning.
      */
     public static String parse(String id) {
         // Load shader source using Voxy's classloader (NeoForge classloader isolation fix)
         String shaderSource = getShaderSource(id);
 
-        // Process nested #import directives recursively (Standalone Voxy parser)
-        shaderSource = processImports(shaderSource);
+        // Process any nested #import directives recursively using Voxy's internal parser
+        String processed = processImports(shaderSource);
 
-        // Normalize line endings and strip original #version (upstream behavior)
-        shaderSource = shaderSource.replaceAll("\r\n", "\n");
-        shaderSource = shaderSource.replaceFirst("\n#version .+\n", "\n");
+        // Normalize line endings
+        processed = processed.replaceAll("\r\n", "\n");
 
-        // Prepend target GLSL 4.6 version
-        return "#version 460 core\n" + shaderSource;
+        // Strip any embedded #version directive so we can supply uniform target version
+        processed = processed.replaceFirst("^#version .+\n", "");
+        processed = processed.replaceFirst("\n#version .+\n", "\n");
+
+        // Prepend target GLSL 460 core version
+        return "#version 460 core\n\n" + processed + "\n//beans\n";
     }
 
     /**
