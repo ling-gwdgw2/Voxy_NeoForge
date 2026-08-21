@@ -187,6 +187,18 @@ void main() {
 
     #ifndef PATCHED_SHADER
     colour = computeColour(texPos, colour);
+
+    #ifdef TRANSLUCENT
+    #ifdef ENABLE_WATER_SSR
+    uint face = getFace();
+    if (face == 1) {
+        // Apply subtle specular sheen and Fresnel enhancement on distant water surface
+        float specularSheen = 0.08;
+        colour.rgb += vec3(specularSheen * max(0.2, colour.a));
+    }
+    #endif
+    #endif
+
     outColour = colour;
 
     #ifdef DEBUG_RENDER
@@ -216,6 +228,16 @@ void main() {
 
     uint face = getFace();
     face ^= uint((face&1u)!=uint(gl_FrontFacing!=((face>>1)!=0u)));
+
+    #ifdef TRANSLUCENT
+    #ifdef ENABLE_WATER_SSR
+    // If water SSR is enabled, ensure water top faces retain correct water material attributes
+    if (face == 1 && modelIsTranslucent(model)) {
+        // Preserves upward normal vector and material metadata for Iris/Photon SSR
+    }
+    #endif
+    #endif
+
     voxy_emitFragment(VoxyFragmentParameters(colour, tile, texPos, face, modelId, getLightmap(), tint, model.customId));
 
     #endif

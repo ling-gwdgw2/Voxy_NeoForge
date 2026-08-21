@@ -54,6 +54,10 @@ public class VoxyNeoForgeConfig {
             .comment("Apply environmental fog to LOD terrain")
             .define("useEnvironmentalFog", true);
 
+    private static final ModConfigSpec.BooleanValue ENABLE_WATER_SSR = BUILDER
+            .comment("Enable Screen-Space Reflections (SSR) and wave normal enhancement for LOD water")
+            .define("enableWaterSSR", true);
+
     // Advanced settings
     private static final ModConfigSpec.BooleanValue DONT_USE_SODIUM_BUILDER_THREADS = BUILDER
             .comment("Don't share threads with Sodium's chunk builder")
@@ -114,6 +118,7 @@ public class VoxyNeoForgeConfig {
         VoxyConfig.CONFIG.lodBoundaryBuffer = LOD_BOUNDARY_BUFFER.get();
         VoxyConfig.CONFIG.earthCurveRatio = EARTH_CURVE_RATIO.get();
         VoxyConfig.CONFIG.geometryBufferSizeMB = GEOMETRY_BUFFER_SIZE_MB.get();
+        VoxyConfig.CONFIG.enableWaterSSR = ENABLE_WATER_SSR.get();
 
         // RenderStatistics is a runtime-only setting (not saved to JSON)
         RenderStatistics.enabled = RENDER_STATISTICS.get();

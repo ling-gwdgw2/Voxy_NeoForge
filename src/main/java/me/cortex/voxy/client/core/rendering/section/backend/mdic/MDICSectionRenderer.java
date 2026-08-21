@@ -129,7 +129,7 @@ public class MDICSectionRenderer extends AbstractSectionRenderer<MDICViewport, B
         String translucentFrag = pipeline.patchTranslucentShader(this, frag);
         translucentFrag = translucentFrag==null?frag:translucentFrag;
 
-        this.translucentTerrainShader = tryCompilePatchedOrNormal(builder.define("TRANSLUCENT"), translucentFrag, frag);
+        this.translucentTerrainShader = tryCompilePatchedOrNormal(builder.define("TRANSLUCENT").defineIf("ENABLE_WATER_SSR", VoxyConfig.CONFIG.enableWaterSSR), translucentFrag, frag);
     }
 
     private void uploadUniformBuffer(MDICViewport viewport) {

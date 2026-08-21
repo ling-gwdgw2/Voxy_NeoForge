@@ -147,7 +147,12 @@ public class VoxyConfigMenu implements ConfigEntryPoint {
                                         "voxy:eviromental_fog",
                                         Component.translatable("voxy.config.general.environmental_fog"),
                                         ()->CFG.useEnvironmentalFog, v->CFG.useEnvironmentalFog=v)
-                                        .setPostChangeFlags(RENDER_RELOAD)
+                                        .setPostChangeFlags(RENDER_RELOAD),
+                                new BoolOption(
+                                        "voxy:water_ssr_reflection",
+                                        Component.translatable("voxy.sodium.option.water_ssr_reflection"),
+                                        ()->CFG.enableWaterSSR, v->CFG.enableWaterSSR=v)
+                                        .setPostChangeFlags(RENDER_RELOAD, "voxy:iris_reload")
                         ), new Group(
                                 new BoolOption(
                                         "voxy:render_debug",

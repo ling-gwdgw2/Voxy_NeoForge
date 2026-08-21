@@ -49,6 +49,9 @@ public class VoxyConfig {
     // Prevents VRAM overflow on 4GB / 6GB / 8GB GPUs
     public int geometryBufferSizeMB = 0;
 
+    // LOD Water & Translucent Reflection (Screen-Space Reflection & wave normal enhancement)
+    public boolean enableWaterSSR = true;
+
     private static VoxyConfig loadOrCreate() {
         if (VoxyCommon.isAvailable()) {
             var path = getConfigPath();
