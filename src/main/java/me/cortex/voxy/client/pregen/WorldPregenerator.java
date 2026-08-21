@@ -12,13 +12,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * World Pre-generator for Voxy LODs.
- * Generates and ingests chunks in a specified radius around the player
+ * Generates and ingests chunks in a circular radius centered on the player (Center-Out Radial / Spiral Order)
  * using background worker threads with smart-skip of existing chunks and real-time HUD progress.
  */
 public class WorldPregenerator {
@@ -27,6 +28,8 @@ public class WorldPregenerator {
     public static WorldPregenerator getInstance() {
         return INSTANCE;
     }
+
+    private record ChunkOffset(int dx, int dz, int distSq) {}
 
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final AtomicInteger processedChunks = new AtomicInteger(0);
@@ -59,7 +62,21 @@ public class WorldPregenerator {
         int centerChunkX = mc.player.getBlockX() >> 4;
         int centerChunkZ = mc.player.getBlockZ() >> 4;
 
-        int total = (radiusChunks * 2 + 1) * (radiusChunks * 2 + 1);
+        // Build list of circular chunk offsets centered on the player
+        List<ChunkOffset> offsets = new ArrayList<>();
+        int radiusSq = radiusChunks * radiusChunks;
+        for (int dx = -radiusChunks; dx <= radiusChunks; dx++) {
+            for (int dz = -radiusChunks; dz <= radiusChunks; dz++) {
+                int distSq = dx * dx + dz * dz;
+                if (distSq <= radiusSq) {
+                    offsets.add(new ChunkOffset(dx, dz, distSq));
+                }
+            }
+        }
+        // Sort from closest to player (center) outwards to horizon
+        offsets.sort(Comparator.comparingInt(ChunkOffset::distSq));
+
+        int total = offsets.size();
         this.totalChunks.set(total);
         this.processedChunks.set(0);
         this.skippedChunks.set(0);
@@ -73,7 +90,7 @@ public class WorldPregenerator {
             return t;
         });
 
-        mc.gui.getChat().addMessage(Component.literal(String.format("[Voxy Pregen] Starting LOD generation in %d chunks radius (%d total chunks with %d threads)...", radiusChunks, total, threads)).withStyle(ChatFormatting.GREEN));
+        mc.gui.getChat().addMessage(Component.literal(String.format("[Voxy Pregen] Starting circular LOD generation in %d chunks radius (%d total chunks with %d threads)...", radiusChunks, total, threads)).withStyle(ChatFormatting.GREEN));
 
         this.pregenExecutor.submit(() -> {
             try {
@@ -82,67 +99,62 @@ public class WorldPregenerator {
                 int minY = mc.level.getMinBuildHeight() >> 4;
                 int maxY = mc.level.getMaxBuildHeight() >> 4;
 
-                for (int dx = -radiusChunks; dx <= radiusChunks; dx++) {
-                    for (int dz = -radiusChunks; dz <= radiusChunks; dz++) {
-                        if (!this.isRunning.get() || Thread.currentThread().isInterrupted() || mc.level == null || mc.player == null || mc.getSingleplayerServer() == null || !mc.getSingleplayerServer().isRunning()) {
-                            this.isRunning.set(false);
-                            break;
-                        }
+                for (var offset : offsets) {
+                    if (!this.isRunning.get() || Thread.currentThread().isInterrupted() || mc.level == null || mc.player == null || mc.getSingleplayerServer() == null || !mc.getSingleplayerServer().isRunning()) {
+                        this.isRunning.set(false);
+                        break;
+                    }
 
-                        int cx = centerChunkX + dx;
-                        int cz = centerChunkZ + dz;
+                    int cx = centerChunkX + offset.dx;
+                    int cz = centerChunkZ + offset.dz;
 
-                        // Smart-Skip check: Check if chunk already exists in Voxy's database
-                        boolean alreadyIngested = false;
-                        if (engine != null) {
-                            for (int y = minY; y < maxY; y += 4) {
-                                var sec = engine.acquireIfExists(0, cx, y, cz);
-                                if (sec != null) {
-                                    sec.release();
-                                    alreadyIngested = true;
-                                    break;
-                                }
+                    // Smart-Skip check: Check if chunk already exists in Voxy's database
+                    boolean alreadyIngested = false;
+                    if (engine != null) {
+                        for (int y = minY; y < maxY; y += 4) {
+                            var sec = engine.acquireIfExists(0, cx, y, cz);
+                            if (sec != null) {
+                                sec.release();
+                                alreadyIngested = true;
+                                break;
                             }
-                        }
-
-                        if (alreadyIngested) {
-                            this.skippedChunks.incrementAndGet();
-                            this.processedChunks.incrementAndGet();
-                            continue;
-                        }
-
-                        try {
-                            // Generate chunk from server chunk source on worker thread
-                            var chunk = serverLevel.getChunkSource().getChunk(cx, cz, ChunkStatus.FULL, true);
-                            if (chunk instanceof LevelChunk levelChunk) {
-                                VoxelIngestService.tryAutoIngestChunk(levelChunk);
-                            }
-                        } catch (Exception e) {
-                            if (this.isRunning.get()) {
-                                Logger.error("Failed to generate chunk at " + cx + ", " + cz, e);
-                            }
-                        }
-
-                        int current = this.processedChunks.incrementAndGet();
-                        long now = System.currentTimeMillis();
-
-                        if (now - lastHudUpdate >= 250) {
-                            lastHudUpdate = now;
-                            double elapsedSec = Math.max(0.1, (now - this.startTime) / 1000.0);
-                            double rate = current / elapsedSec;
-                            int percent = (int) ((current / (double) total) * 100.0);
-
-                            mc.execute(() -> {
-                                if (this.isRunning.get() && mc.player != null) {
-                                    mc.gui.setOverlayMessage(Component.literal(
-                                            String.format("[Voxy Pregen] Progress: %d%% (%d / %d chunks, %d skipped) - %.1f chunks/s", percent, current, total, this.skippedChunks.get(), rate)
-                                    ).withStyle(ChatFormatting.AQUA), false);
-                                }
-                            });
                         }
                     }
-                    if (!this.isRunning.get()) {
-                        break;
+
+                    if (alreadyIngested) {
+                        this.skippedChunks.incrementAndGet();
+                        this.processedChunks.incrementAndGet();
+                        continue;
+                    }
+
+                    try {
+                        // Generate chunk from server chunk source on worker thread
+                        var chunk = serverLevel.getChunkSource().getChunk(cx, cz, ChunkStatus.FULL, true);
+                        if (chunk instanceof LevelChunk levelChunk) {
+                            VoxelIngestService.tryAutoIngestChunk(levelChunk);
+                        }
+                    } catch (Exception e) {
+                        if (this.isRunning.get()) {
+                            Logger.error("Failed to generate chunk at " + cx + ", " + cz, e);
+                        }
+                    }
+
+                    int current = this.processedChunks.incrementAndGet();
+                    long now = System.currentTimeMillis();
+
+                    if (now - lastHudUpdate >= 250) {
+                        lastHudUpdate = now;
+                        double elapsedSec = Math.max(0.1, (now - this.startTime) / 1000.0);
+                        double rate = current / elapsedSec;
+                        int percent = (int) ((current / (double) total) * 100.0);
+
+                        mc.execute(() -> {
+                            if (this.isRunning.get() && mc.player != null) {
+                                mc.gui.setOverlayMessage(Component.literal(
+                                        String.format("[Voxy Pregen] Progress: %d%% (%d / %d chunks, %d skipped) - %.1f chunks/s", percent, current, total, this.skippedChunks.get(), rate)
+                                ).withStyle(ChatFormatting.AQUA), false);
+                            }
+                        });
                     }
                 }
 
