@@ -84,7 +84,8 @@ public class WorldPregenerator {
 
                 for (int dx = -radiusChunks; dx <= radiusChunks; dx++) {
                     for (int dz = -radiusChunks; dz <= radiusChunks; dz++) {
-                        if (!this.isRunning.get()) {
+                        if (!this.isRunning.get() || Thread.currentThread().isInterrupted() || mc.level == null || mc.player == null || mc.getSingleplayerServer() == null || !mc.getSingleplayerServer().isRunning()) {
+                            this.isRunning.set(false);
                             break;
                         }
 
@@ -117,7 +118,9 @@ public class WorldPregenerator {
                                 VoxelIngestService.tryAutoIngestChunk(levelChunk);
                             }
                         } catch (Exception e) {
-                            Logger.error("Failed to generate chunk at " + cx + ", " + cz, e);
+                            if (this.isRunning.get()) {
+                                Logger.error("Failed to generate chunk at " + cx + ", " + cz, e);
+                            }
                         }
 
                         int current = this.processedChunks.incrementAndGet();
@@ -130,7 +133,7 @@ public class WorldPregenerator {
                             int percent = (int) ((current / (double) total) * 100.0);
 
                             mc.execute(() -> {
-                                if (mc.player != null) {
+                                if (this.isRunning.get() && mc.player != null) {
                                     mc.gui.setOverlayMessage(Component.literal(
                                             String.format("[Voxy Pregen] Progress: %d%% (%d / %d chunks, %d skipped) - %.1f chunks/s", percent, current, total, this.skippedChunks.get(), rate)
                                     ).withStyle(ChatFormatting.AQUA), false);
@@ -149,19 +152,19 @@ public class WorldPregenerator {
                 int skipped = this.skippedChunks.get();
 
                 mc.execute(() -> {
-                    if (mc.gui != null && mc.gui.getChat() != null) {
+                    if (mc.gui != null && mc.gui.getChat() != null && mc.player != null) {
                         if (this.isRunning.get()) {
                             mc.gui.getChat().addMessage(Component.literal(
                                     String.format("[Voxy Pregen] Finished! Processed %d chunks (%d skipped) in %.2f seconds.", finished, skipped, seconds)
                             ).withStyle(ChatFormatting.GREEN));
-                        } else {
-                            mc.gui.getChat().addMessage(Component.literal("[Voxy Pregen] Pre-generation cancelled.").withStyle(ChatFormatting.YELLOW));
                         }
                     }
                 });
 
             } catch (Exception e) {
-                Logger.error("Error during Voxy world pre-generation", e);
+                if (this.isRunning.get()) {
+                    Logger.error("Error during Voxy world pre-generation", e);
+                }
             } finally {
                 this.isRunning.set(false);
             }
@@ -174,11 +177,17 @@ public class WorldPregenerator {
         if (this.isRunning.compareAndSet(true, false)) {
             if (this.pregenExecutor != null) {
                 this.pregenExecutor.shutdownNow();
+                this.pregenExecutor = null;
             }
             var mc = Minecraft.getInstance();
-            if (mc.gui != null && mc.gui.getChat() != null) {
-                mc.gui.getChat().addMessage(Component.literal("[Voxy Pregen] Stopping pre-generation...").withStyle(ChatFormatting.YELLOW));
-            }
+            mc.execute(() -> {
+                if (mc.gui != null) {
+                    mc.gui.setOverlayMessage(Component.empty(), false);
+                    if (mc.gui.getChat() != null && mc.player != null) {
+                        mc.gui.getChat().addMessage(Component.literal("[Voxy Pregen] Pre-generation stopped.").withStyle(ChatFormatting.YELLOW));
+                    }
+                }
+            });
             return true;
         }
         return false;

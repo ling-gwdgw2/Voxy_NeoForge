@@ -1,6 +1,7 @@
 package me.cortex.voxy.client.mixin.minecraft;
 
 import me.cortex.voxy.client.VoxyClientInstance;
+import me.cortex.voxy.client.pregen.WorldPregenerator;
 import me.cortex.voxy.commonImpl.VoxyCommon;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,8 +11,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Minecraft.class)
 public class MixinMinecraft {
-    @Inject(method = "disconnect", at = @At("TAIL"))
+    @Inject(method = "disconnect", at = @At("HEAD"))
     private void voxy$injectWorldClose(CallbackInfo ci) {
+        WorldPregenerator.getInstance().cancelPregen();
         if (VoxyCommon.isAvailable() && VoxyClientInstance.isInGame) {
             VoxyCommon.shutdownInstance();
             VoxyClientInstance.isInGame = false;

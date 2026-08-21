@@ -40,6 +40,7 @@ public abstract class MixinLevelRenderer implements IGetVoxyRenderSystem {
 
     @Inject(method = "setLevel", at = @At("HEAD"))
     private void voxy$captureSetWorld(ClientLevel world, CallbackInfo ci) {
+        me.cortex.voxy.client.pregen.WorldPregenerator.getInstance().cancelPregen();
         if (this.level != world) {
             this.shutdownRenderer();
         }
@@ -54,6 +55,7 @@ public abstract class MixinLevelRenderer implements IGetVoxyRenderSystem {
 
     @Inject(method = "close", at = @At("HEAD"))
     private void injectClose(CallbackInfo ci) {
+        me.cortex.voxy.client.pregen.WorldPregenerator.getInstance().cancelPregen();
         this.shutdownRenderer();
     }
 
