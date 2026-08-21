@@ -77,6 +77,12 @@ public class VoxyNeoForgeConfig {
                      "Inspired by Distant Horizons' earth curvature feature")
             .defineInRange("earthCurveRatio", 0, 0, 5000);
 
+    // VRAM Geometry Budget
+    private static final ModConfigSpec.IntValue GEOMETRY_BUFFER_SIZE_MB = BUILDER
+            .comment("VRAM Geometry Budget in MB (0 = Auto detection based on GPU VRAM, e.g. 512, 768, 1024, 1536)",
+                     "Prevents VRAM overflow and crashes on GPUs with 4GB/6GB/8GB VRAM.")
+            .defineInRange("geometryBufferSizeMB", 0, 0, 2048);
+
     // Debug settings
     private static final ModConfigSpec.BooleanValue RENDER_STATISTICS = BUILDER
             .comment("Show render statistics in F3 debug screen",
@@ -107,6 +113,7 @@ public class VoxyNeoForgeConfig {
         VoxyConfig.CONFIG.dontUseSodiumBuilderThreads = DONT_USE_SODIUM_BUILDER_THREADS.get();
         VoxyConfig.CONFIG.lodBoundaryBuffer = LOD_BOUNDARY_BUFFER.get();
         VoxyConfig.CONFIG.earthCurveRatio = EARTH_CURVE_RATIO.get();
+        VoxyConfig.CONFIG.geometryBufferSizeMB = GEOMETRY_BUFFER_SIZE_MB.get();
 
         // RenderStatistics is a runtime-only setting (not saved to JSON)
         RenderStatistics.enabled = RENDER_STATISTICS.get();
