@@ -111,7 +111,8 @@ public class VoxyConfigMenu implements ConfigEntryPoint {
                                         Component.translatable("voxy.config.general.subDivisionSize"),
                                         ()->subDiv2ln(CFG.subDivisionSize), v->CFG.subDivisionSize=ln2subDiv(v),
                                         new Range(0, SUBDIV_IN_MAX, 1))
-                                        .setFormatter(v->Component.literal(Integer.toString(Math.round(ln2subDiv(v))))),
+                                        .setFormatter(v->Component.literal(Integer.toString(Math.round(ln2subDiv(v)))))
+                                        .setPostChangeFlags(RENDER_RELOAD),
                                 new IntOption(
                                         "voxy:render_distance",
                                         Component.translatable("voxy.config.general.renderDistance"),
@@ -132,13 +133,15 @@ public class VoxyConfigMenu implements ConfigEntryPoint {
                                         "voxy:lod_boundary_buffer",
                                         Component.translatable("voxy.sodium.option.lod_boundary_buffer"),
                                         ()->CFG.lodBoundaryBuffer, v->CFG.lodBoundaryBuffer=v,
-                                        new Range(0, 4, 1)),
+                                        new Range(0, 4, 1))
+                                        .setPostChangeFlags(RENDER_RELOAD),
                                 new IntOption(
                                         "voxy:earth_curve_ratio",
                                         Component.translatable("voxy.sodium.option.earth_curve_ratio"),
                                         ()->CFG.earthCurveRatio, v->CFG.earthCurveRatio=v,
                                         new Range(0, 500, 10))
                                         .setFormatter(v->Component.literal(v == 0 ? "Off" : (v < 50 ? "50" : Integer.toString(v))))
+                                        .setPostChangeFlags(RENDER_RELOAD)
                         ), new Group(
                                 new BoolOption(
                                         "voxy:eviromental_fog",
