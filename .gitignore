@@ -1,11 +1,32 @@
-# Project exclude paths
+# Gradle and build artifacts
 /.gradle/
-/.idea/
 /build/
 /bin/
-/run/
 /out/
+
+# IDE and Editors
+/.idea/
+/.vscode/
+/*.iml
+/*.ipr
+/*.iws
+/.settings/
+/.classpath
+/.project
+
+# Minecraft run directories and logs
+/run/
+/runClient/
+/runServer/
+/runData/
 /logs/
+*.log
+*.lck
+*.lock
+
+# Crash and error reports
+hs_err_pid*
+replay_pid*
 
 # Reference dependency clones for development
 /.reference/
@@ -21,8 +42,13 @@
 /scripts/tail_logs.sh
 /scripts/grep_logs.sh
 
-# macOS metadata
+# OS metadata
 .DS_Store
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
 
-# AI Assistant Notes
+# AI Assistant & Private Notes
 CLAUDE.md
+*.tmp
+*.bak
