@@ -122,15 +122,37 @@ public class VoxyNeoForgeConfig {
 
         // RenderStatistics is a runtime-only setting (not saved to JSON)
         RenderStatistics.enabled = RENDER_STATISTICS.get();
+    }
 
-        // Also save to the JSON config for compatibility
-        VoxyConfig.CONFIG.save();
+    /**
+     * Sync VoxyConfig values back to NeoForge TOML spec and save to disk.
+     */
+    public static void syncFromVoxyConfig() {
+        try {
+            if (SPEC.isLoaded()) {
+                ENABLED.set(VoxyConfig.CONFIG.enabled);
+                ENABLE_RENDERING.set(VoxyConfig.CONFIG.enableRendering);
+                INGEST_ENABLED.set(VoxyConfig.CONFIG.ingestEnabled);
+                SECTION_RENDER_DISTANCE.set(VoxyConfig.CONFIG.sectionRenderDistance);
+                SERVICE_THREADS.set(VoxyConfig.CONFIG.serviceThreads);
+                SUB_DIVISION_SIZE.set((double) VoxyConfig.CONFIG.subDivisionSize);
+                USE_ENVIRONMENTAL_FOG.set(VoxyConfig.CONFIG.useEnvironmentalFog);
+                DONT_USE_SODIUM_BUILDER_THREADS.set(VoxyConfig.CONFIG.dontUseSodiumBuilderThreads);
+                LOD_BOUNDARY_BUFFER.set(VoxyConfig.CONFIG.lodBoundaryBuffer);
+                EARTH_CURVE_RATIO.set(VoxyConfig.CONFIG.earthCurveRatio);
+                GEOMETRY_BUFFER_SIZE_MB.set(VoxyConfig.CONFIG.geometryBufferSizeMB);
+                ENABLE_WATER_SSR.set(VoxyConfig.CONFIG.enableWaterSSR);
+                RENDER_STATISTICS.set(RenderStatistics.enabled);
+                SPEC.save();
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     @SubscribeEvent
     public static void onConfigLoad(ModConfigEvent.Loading event) {
         if (event.getConfig().getSpec() == SPEC) {
-            syncToVoxyConfig();
+            syncFromVoxyConfig();
         }
     }
 

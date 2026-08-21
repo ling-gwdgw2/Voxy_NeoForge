@@ -85,6 +85,7 @@ public class VoxyConfig {
         } catch (IOException e) {
             Logger.error("Failed to write config file", e);
         }
+        VoxyNeoForgeConfig.syncFromVoxyConfig();
     }
 
     private static Path getConfigPath() {
