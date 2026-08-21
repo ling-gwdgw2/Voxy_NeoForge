@@ -132,42 +132,38 @@ public class VoxelIngestService {
             }
         }
 
-        if (!gotLighting) {
-            return false;
-        }
-
         var blp = lightingProvider.getLayerListener(LightLayer.BLOCK);
         var slp = lightingProvider.getLayerListener(LightLayer.SKY);
-
 
         // MC 1.21.1: LevelChunk.getMinSectionY() → chunk.getLevel().getMinSection()
         i = chunk.getLevel().getMinSection() - 1;
         for (var section : chunk.getSections()) {
             i++;
             if (section == null || !shouldIngestSection(section, chunk.getPos().x, i, chunk.getPos().z)) continue;
-            //if (section.isEmpty()) continue;
             var pos = SectionPos.of(chunk.getPos(), i);
 
-            var bl = blp.getDataLayerData(pos);
-            if (bl != null) {
-                bl = bl.copy();
+            DataLayer bl = null;
+            if (blp != null) {
+                var rawBl = blp.getDataLayerData(pos);
+                if (rawBl != null) {
+                    bl = rawBl.copy();
+                }
             }
 
-            var sl = slp.getDataLayerData(pos);
-            if (sl != null) {
-                sl = sl.copy();
+            DataLayer sl = null;
+            if (slp != null) {
+                var rawSl = slp.getDataLayerData(pos);
+                if (rawSl != null) {
+                    sl = rawSl.copy();
+                }
             }
 
-            //If its null for either, assume failure to obtain lighting and ignore section
-            //if (blNone && slNone) {
-            //    continue;
-            //}
             engine.markActive();
-            this.ingestQueue.add(new IngestSection(chunk.getPos().x, i, chunk.getPos().z, engine, section, bl, sl));//TODO: fixme, this is technically not safe todo on the chunk load ingest, we need to copy the section data so it cant be modified while being read
+            this.ingestQueue.add(new IngestSection(chunk.getPos().x, i, chunk.getPos().z, engine, section, bl, sl));
             try {
                 this.service.execute();
             } catch (Exception e) {
-                Logger.error("Executing had an error: assume shutting down, aborting",e);
+                Logger.error("Executing had an error: assume shutting down, aborting", e);
                 break;
             }
         }

@@ -45,6 +45,13 @@ public abstract class MixinLevelRenderer implements IGetVoxyRenderSystem {
         }
     }
 
+    @Inject(method = "setLevel", at = @At("RETURN"))
+    private void voxy$onSetWorldReturn(ClientLevel world, CallbackInfo ci) {
+        if (world != null && this.renderer == null) {
+            this.createRenderer();
+        }
+    }
+
     @Inject(method = "close", at = @At("HEAD"))
     private void injectClose(CallbackInfo ci) {
         this.shutdownRenderer();
