@@ -57,7 +57,7 @@ public class RocksDBStorageBackend extends StorageBackend {
                 .optimizeForSmallDb();
 
         final ColumnFamilyOptions cfWorldSecOpts = new ColumnFamilyOptions()
-                .setCompressionType(CompressionType.NO_COMPRESSION)
+                .setCompressionType(CompressionType.ZSTD_COMPRESSION)
                 .setCompactionPriority(CompactionPriority.MinOverlappingRatio)
                 .setLevelCompactionDynamicLevelBytes(true)
                 .optimizeForPointLookup(128);

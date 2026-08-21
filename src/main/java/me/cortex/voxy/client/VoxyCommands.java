@@ -1,11 +1,13 @@
 package me.cortex.voxy.client;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import me.cortex.voxy.client.core.IGetVoxyRenderSystem;
+import me.cortex.voxy.client.pregen.WorldPregenerator;
 import me.cortex.voxy.common.Logger;
 import me.cortex.voxy.commonImpl.VoxyCommon;
 import me.cortex.voxy.commonImpl.WorldIdentifier;
@@ -49,7 +51,7 @@ public class VoxyCommands {
                         .then(Commands.argument("zipPath", StringArgumentType.string())
                                 .executes(VoxyCommands::importZip)
                                 .then(Commands.argument("innerPath", StringArgumentType.string())
-                                        .executes(VoxyCommands::importZip))))
+                                         .executes(VoxyCommands::importZip))))
                 .then(Commands.literal("cancel")
                         .executes(VoxyCommands::cancelImport));
 
@@ -60,10 +62,36 @@ public class VoxyCommands {
                             .executes(VoxyCommands::importDistantHorizons)));
         }
 
+        var pregen = Commands.literal("pregen")
+                .then(Commands.argument("radius_chunks", IntegerArgumentType.integer(1, 256))
+                        .executes(VoxyCommands::startPregen))
+                .then(Commands.literal("cancel")
+                        .executes(VoxyCommands::cancelPregen));
+
         return Commands.literal("voxy")//.requires((ctx)-> VoxyCommon.getInstance() != null)
                 .then(Commands.literal("reload")
                         .executes(VoxyCommands::reloadInstance))
-                .then(imports);
+                .then(imports)
+                .then(pregen);
+    }
+
+    private static int startPregen(CommandContext<CommandSourceStack> ctx) {
+        int radius = IntegerArgumentType.getInteger(ctx, "radius_chunks");
+        if (WorldPregenerator.getInstance().startPregen(radius)) {
+            return 0;
+        } else {
+            ctx.getSource().sendFailure(Component.literal("[Voxy Pregen] Could not start pre-generation (already running or not in world)."));
+            return 1;
+        }
+    }
+
+    private static int cancelPregen(CommandContext<CommandSourceStack> ctx) {
+        if (WorldPregenerator.getInstance().cancelPregen()) {
+            return 0;
+        } else {
+            ctx.getSource().sendFailure(Component.literal("[Voxy Pregen] No pre-generation task is currently running."));
+            return 1;
+        }
     }
 
     private static int reloadInstance(CommandContext<CommandSourceStack> ctx) {
