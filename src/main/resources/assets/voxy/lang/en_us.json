@@ -67,5 +67,8 @@
   "voxy.sodium.option.render_statistics.tooltip": "Show LOD render statistics in the F3 debug screen",
 
   "voxy.sodium.option.earth_curve_ratio": "World Curvature",
-  "voxy.sodium.option.earth_curve_ratio.tooltip": "Simulates standing on a spherical planet. 0 = flat world. Higher values = smaller planet effect (more curvature). Inspired by Distant Horizons."
+  "voxy.sodium.option.earth_curve_ratio.tooltip": "Simulates standing on a spherical planet. 0 = flat world. Higher values = smaller planet effect (more curvature). Inspired by Distant Horizons.",
+
+  "voxy.sodium.option.geometry_buffer_size": "VRAM Geometry Budget",
+  "voxy.sodium.option.geometry_buffer_size.tooltip": "VRAM allocated for LOD geometry storage. Auto scales safely (512MB-1GB) to prevent VRAM overflow and stuttering on 4GB-8GB GPUs."
 }

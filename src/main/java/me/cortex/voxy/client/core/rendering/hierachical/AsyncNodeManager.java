@@ -103,6 +103,8 @@ public class AsyncNodeManager {
             }
         });
         this.thread.setName("Async Node Manager");
+        this.thread.setDaemon(true);
+        this.thread.setPriority(Thread.NORM_PRIORITY - 1);
 
         this.geometryManager = new BasicAsyncGeometryManager(((BasicSectionGeometryData)geometryData).getMaxSectionCount(), this.geometryCapacity);
 

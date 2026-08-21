@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static org.lwjgl.opengl.GL11C.glViewport;
 
-@Mixin(value = LevelRenderer.class, remap = false)
+@Mixin(LevelRenderer.class)
 public class MixinLevelRenderer {
 
     @Inject(method = "renderLevel", at = @At("HEAD"), order = 100)

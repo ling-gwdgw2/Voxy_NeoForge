@@ -9,6 +9,7 @@ import me.cortex.voxy.client.core.util.IrisUtil;
 import me.cortex.voxy.common.util.cpu.CpuLayout;
 import me.cortex.voxy.commonImpl.VoxyCommon;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
+import net.caffeinemc.mods.sodium.api.config.ConfigEntryPointForge;
 import net.caffeinemc.mods.sodium.api.config.option.OptionFlag;
 import net.caffeinemc.mods.sodium.api.config.option.OptionImpact;
 import net.caffeinemc.mods.sodium.api.config.option.Range;
@@ -17,6 +18,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
+@ConfigEntryPointForge("voxy")
 public class VoxyConfigMenu implements ConfigEntryPoint {
     @Override
     public void registerConfigLate(ConfigBuilder B) {
@@ -75,6 +77,14 @@ public class VoxyConfigMenu implements ConfigEntryPoint {
                                         "voxy:ingest_enabled",
                                         Component.translatable("voxy.config.general.ingest"),
                                         ()->CFG.ingestEnabled, v->CFG.ingestEnabled=v)
+                        ), new Group(
+                                new IntOption(
+                                        "voxy:vram_budget",
+                                        Component.translatable("voxy.sodium.option.geometry_buffer_size"),
+                                        ()->CFG.geometryBufferSizeMB, v->CFG.geometryBufferSizeMB=v,
+                                        new Range(0, 2048, 256))
+                                        .setFormatter(v->Component.literal(v == 0 ? "Auto" : (v + " MB")))
+                                        .setPostChangeFlags(RENDER_RELOAD)
                         )
                 ).setEnabler("voxy:enabled"),
                 new Page(Component.translatable("voxy.config.rendering"),
@@ -117,6 +127,18 @@ public class VoxyConfigMenu implements ConfigEntryPoint {
                                                 }
                                             }
                                         }, "voxy:rendering", RENDER_RELOAD)
+                        ), new Group(
+                                new IntOption(
+                                        "voxy:lod_boundary_buffer",
+                                        Component.translatable("voxy.sodium.option.lod_boundary_buffer"),
+                                        ()->CFG.lodBoundaryBuffer, v->CFG.lodBoundaryBuffer=v,
+                                        new Range(0, 4, 1)),
+                                new IntOption(
+                                        "voxy:earth_curve_ratio",
+                                        Component.translatable("voxy.sodium.option.earth_curve_ratio"),
+                                        ()->CFG.earthCurveRatio, v->CFG.earthCurveRatio=v,
+                                        new Range(0, 500, 10))
+                                        .setFormatter(v->Component.literal(v == 0 ? "Off" : (v < 50 ? "50" : Integer.toString(v))))
                         ), new Group(
                                 new BoolOption(
                                         "voxy:eviromental_fog",

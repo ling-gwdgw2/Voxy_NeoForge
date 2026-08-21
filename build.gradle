@@ -23,10 +23,8 @@ sourceSets {
             // exclude 'me/cortex/voxy/client/core/util/IrisUtil.java'
             // exclude 'me/cortex/voxy/client/mixin/iris/**'
 
-            // Sodium config API (changed in Sodium 0.6.x)
-            exclude 'me/cortex/voxy/client/config/SodiumConfigBuilder.java'
-            exclude 'me/cortex/voxy/client/config/VoxyConfigMenu.java'
-            exclude 'me/cortex/voxy/client/config/IConfigPageSetter.java'
+            // Sodium config API (native Sodium ConfigEntryPoint)
+            // SodiumConfigBuilder, VoxyConfigMenu, and IConfigPageSetter now enabled
 
             // ModMenu integration (Fabric-only)
             exclude 'me/cortex/voxy/client/config/ModMenuIntegration.java'
@@ -182,22 +180,13 @@ dependencies {
 
     // Sodium for NeoForge (0.6.13 - latest for MC 1.21.1)
     implementation "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
+    compileOnly files('libs/sodium-neoforge-0.8.12-mod.jar')
 
     // Lithium for NeoForge (0.15.1 - latest for MC 1.21.1)
     implementation("maven.modrinth:lithium:mc1.21.1-0.15.1-neoforge")
 
-    // SodiumOptionsAPI for Video Settings integration
-    // Provides event API to add custom pages to Sodium's options GUI
-    compileOnly("maven.modrinth:sodium-options-api:neoforge-1.21.1-1.0.10")
-
-    // Reese's Sodium Options - required by SodiumOptionsAPI
-    compileOnly("maven.modrinth:reeses-sodium-options:mc1.21.3-1.8.0+neoforge")
-
-    // Optional mod dependencies - commented out for initial port
-    // TODO: Add NeoForge versions when available
-    //compileOnly "drouarb:nvidium:0.4.1-beta4:1.21.6@jar"
-    //compileOnly("maven.modrinth:modmenu:17.0.0-alpha.1")
-    compileOnly("maven.modrinth:iris:1.8.12+1.21.1-neoforge")
+    // Iris for NeoForge
+    compileOnly files('libs/iris-neoforge-1.8.14.jar')
     //compileOnly("maven.modrinth:chunky:1.4.54-neoforge")
     //compileOnly("maven.modrinth:vivecraft:1.21.9-1.3.2-neoforge")
     //compileOnly("maven.modrinth:flashback:rNCr1Rbs")

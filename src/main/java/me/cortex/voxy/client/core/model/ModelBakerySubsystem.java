@@ -39,6 +39,8 @@ public class ModelBakerySubsystem {
                 }
             }
         }, "Model factory processor");
+        this.processingThread.setDaemon(true);
+        this.processingThread.setPriority(Thread.NORM_PRIORITY - 1);
         this.processingThread.start();
     }
 

@@ -30,8 +30,7 @@ import me.cortex.voxy.client.core.rendering.util.DownloadStream;
 import me.cortex.voxy.client.core.rendering.util.PrintfDebugUtil;
 import me.cortex.voxy.client.core.rendering.util.UploadStream;
 import me.cortex.voxy.client.core.util.GPUTiming;
-// MC 1.21.1 NeoForge: Iris shader integration excluded
-// import me.cortex.voxy.client.core.util.IrisUtil;
+import me.cortex.voxy.client.core.util.IrisUtil;
 import me.cortex.voxy.common.Logger;
 import me.cortex.voxy.common.thread.ServiceManager;
 import me.cortex.voxy.common.world.WorldEngine;
@@ -221,7 +220,7 @@ public class VoxyRenderSystem {
     }
 
     public void renderOpaque(Viewport<?> viewport) {
-        if (viewport == null) {
+        if (viewport == null || viewport.width <= 0 || viewport.height <= 0 || IrisUtil.irisShadowActive()) {
             return;
         }
 
@@ -313,8 +312,7 @@ public class VoxyRenderSystem {
                 glBindSampler(i, 0);
             }
 
-            // MC 1.21.1 NeoForge: Iris shader integration excluded - clearIrisSamplers() is a no-op
-            // IrisUtil.clearIrisSamplers();//Thanks iris (sigh)
+            IrisUtil.clearIrisSamplers();//Thanks iris (sigh)
 
             //TODO: should/needto actually restore all of these, not just clear them
             //Clear all the bindings
@@ -488,27 +486,28 @@ public class VoxyRenderSystem {
     }
 
     private static long getGeometryBufferSize() {
-        long geometryCapacity = Math.min((1L<<(64-Long.numberOfLeadingZeros(Capabilities.INSTANCE.ssboMaxSize-1)))<<1, 1L<<32)-1024/*(1L<<32)-1024*/;
-        if (Capabilities.INSTANCE.isIntel) {
-            geometryCapacity = Math.max(geometryCapacity, 1L<<30);//intel moment, force min 1gb
+        if (VoxyConfig.CONFIG.geometryBufferSizeMB > 0) {
+            return VoxyConfig.CONFIG.geometryBufferSizeMB * 1024L * 1024L;
         }
-
-        //Limit to available dedicated memory if possible
-        if (Capabilities.INSTANCE.canQueryGpuMemory) {
-            //512mb less than avalible,
-            long limit = Capabilities.INSTANCE.getFreeDedicatedGpuMemory() - (long)(1.5*1024*1024*1024);//1.5gb vram buffer
-            // Give a minimum of 512 mb requirement
-            limit = Math.max(512*1024*1024, limit);
-
-            geometryCapacity = Math.min(geometryCapacity, limit);
-        }
-        //geometryCapacity = 1<<28;
-        //geometryCapacity = 1<<30;//1GB test
         var override = System.getProperty("voxy.geometryBufferSizeOverrideMB", "");
         if (!override.isEmpty()) {
-            geometryCapacity = Long.parseLong(override)*1024L*1024L;
+            return Long.parseLong(override) * 1024L * 1024L;
         }
-        return geometryCapacity;
+
+        long targetMB = 1024L; // Default safe 1GB sweet spot
+        if (Capabilities.INSTANCE.canQueryGpuMemory && Capabilities.INSTANCE.totalDedicatedMemory > 0) {
+            long totalVramMB = Capabilities.INSTANCE.totalDedicatedMemory / (1024 * 1024);
+            if (totalVramMB <= 4096) {
+                targetMB = 512L; // 512MB for 4GB GPUs
+            } else if (totalVramMB <= 6144) {
+                targetMB = 768L; // 768MB for 6GB GPUs
+            } else if (totalVramMB <= 8192) {
+                targetMB = 1024L; // 1024MB for 8GB GPUs
+            } else {
+                targetMB = 1536L; // 1536MB for 12GB+ GPUs
+            }
+        }
+        return targetMB * 1024L * 1024L;
     }
 
     public WorldEngine getEngine() {

@@ -28,7 +28,7 @@ public class VoxyConfig {
     public boolean ingestEnabled = true;
     public int sectionRenderDistance = 16;
     public int serviceThreads = (int) Math.max(CpuLayout.getCoreCount()/1.5, 1);
-    public float subDivisionSize = 64;
+    public float subDivisionSize = 96.0f;
     public boolean useEnvironmentalFog = true;
     public boolean dontUseSodiumBuilderThreads = false;
 
@@ -44,6 +44,10 @@ public class VoxyConfig {
     // Range: 0, or 50-5000 (values 1-49 are invalid and auto-corrected to 50)
     // Inspired by Distant Horizons' earth curvature feature
     public int earthCurveRatio = 0;
+
+    // Geometry VRAM buffer size in MB (0 = Auto detection based on GPU VRAM, e.g. 512, 768, 1024, 1536)
+    // Prevents VRAM overflow on 4GB / 6GB / 8GB GPUs
+    public int geometryBufferSizeMB = 0;
 
     private static VoxyConfig loadOrCreate() {
         if (VoxyCommon.isAvailable()) {
