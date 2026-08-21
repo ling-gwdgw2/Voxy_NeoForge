@@ -1,6 +1,12 @@
 #version 450
 #extension GL_ARB_gpu_shader_int64 : enable
 
+#ifdef USE_SUBGROUPS
+#extension GL_KHR_shader_subgroup_basic : enable
+#extension GL_KHR_shader_subgroup_arithmetic : enable
+#extension GL_KHR_shader_subgroup_ballot : enable
+#endif
+
 layout(local_size_x = 128) in;
 
 #define DRAW_BUFFER_BINDING 1
@@ -94,12 +100,35 @@ void main() {
 
 
         uint cmdCnt = bitCount(msk);
+#ifdef USE_SUBGROUPS
+        uint localOffset = subgroupExclusiveAdd(cmdCnt);
+        uint totalWarpCount = subgroupAdd(cmdCnt);
+        uint warpBase = 0;
+        if (subgroupElect() && totalWarpCount > 0) {
+            warpBase = atomicAdd(opaqueDrawCount, totalWarpCount);
+        }
+        warpBase = subgroupBroadcastFirst(warpBase);
+        uint cmdPtr = warpBase + localOffset;
+
+        uint tCmdPtr = 0;
+        if (renderTemporally) {
+            uint tLocalOffset = subgroupExclusiveAdd(cmdCnt);
+            uint tTotalWarpCount = subgroupAdd(cmdCnt);
+            uint tWarpBase = 0;
+            if (subgroupElect() && tTotalWarpCount > 0) {
+                tWarpBase = atomicAdd(temporalOpaqueDrawCount, tTotalWarpCount);
+            }
+            tWarpBase = subgroupBroadcastFirst(tWarpBase);
+            tCmdPtr = tWarpBase + tLocalOffset + TEMPORAL_OFFSET;
+        }
+#else
         uint cmdPtr = atomicAdd(opaqueDrawCount, cmdCnt);
 
         uint tCmdPtr = 0;
         if (renderTemporally) {
             tCmdPtr = atomicAdd(temporalOpaqueDrawCount, cmdCnt) + TEMPORAL_OFFSET;
         }
+#endif
 
         //TODO: make totalQuads also have temporal amount
         #ifdef HAS_STATISTICS

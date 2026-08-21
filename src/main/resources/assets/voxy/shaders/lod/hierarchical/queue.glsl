@@ -34,11 +34,29 @@ void pushNodesInit(uint nodeCount) {
     }
     #endif
 
+#ifdef USE_SUBGROUPS
+    uint localOffset = subgroupExclusiveAdd(nodeCount);
+    uint totalCount = subgroupAdd(nodeCount);
+    uint baseIndex = 0;
+    if (subgroupElect() && totalCount > 0) {
+        baseIndex = atomicAdd(nodeQueueMetadata[queueIdx+1].w, totalCount);
+    }
+    baseIndex = subgroupBroadcastFirst(baseIndex);
+    uint index = baseIndex + localOffset;
+    uint inc = ((index+LOCAL_SIZE)>>LOCAL_SIZE_BITS)-(index>>LOCAL_SIZE_BITS);
+    if (inc != 0) {
+        atomicAdd(nodeQueueMetadata[queueIdx+1].x, inc);
+    }
+    nodePushIndex = index;
+#else
     uint index = atomicAdd(nodeQueueMetadata[queueIdx+1].w, nodeCount);
     //Increment first metadata value if it changes threash hold
     uint inc = ((index+LOCAL_SIZE)>>LOCAL_SIZE_BITS)-(index>>LOCAL_SIZE_BITS);
-    atomicAdd(nodeQueueMetadata[queueIdx+1].x, inc);//TODO: see if making this conditional on inc != 0 is faster
+    if (inc != 0) {
+        atomicAdd(nodeQueueMetadata[queueIdx+1].x, inc);
+    }
     nodePushIndex = index;
+#endif
 }
 
 void pushNode(uint nodeId) {

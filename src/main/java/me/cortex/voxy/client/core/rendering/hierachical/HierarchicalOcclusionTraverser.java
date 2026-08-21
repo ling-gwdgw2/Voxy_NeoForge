@@ -3,6 +3,7 @@ package me.cortex.voxy.client.core.rendering.hierachical;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import me.cortex.voxy.client.RenderStatistics;
 import me.cortex.voxy.client.config.VoxyConfig;
+import me.cortex.voxy.client.core.gl.Capabilities;
 import me.cortex.voxy.client.core.gl.GlBuffer;
 import me.cortex.voxy.client.core.gl.shader.AutoBindingShader;
 import me.cortex.voxy.client.core.gl.shader.Shader;
@@ -93,6 +94,7 @@ public class HierarchicalOcclusionTraverser {
 
             .defineIf("HAS_STATISTICS", RenderStatistics.enabled)
             .defineIf("STATISTICS_BUFFER_BINDING", RenderStatistics.enabled, STATISTICS_BUFFER_BINDING)
+            .defineIf("USE_SUBGROUPS", Capabilities.INSTANCE.subgroup)
 
             .add(ShaderType.COMPUTE, "voxy:lod/hierarchical/traversal_dev.comp")
             .compile();

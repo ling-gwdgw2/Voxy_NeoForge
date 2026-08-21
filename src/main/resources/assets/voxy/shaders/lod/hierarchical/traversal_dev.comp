@@ -1,5 +1,11 @@
 #version 460 core
 
+#ifdef USE_SUBGROUPS
+#extension GL_KHR_shader_subgroup_basic : enable
+#extension GL_KHR_shader_subgroup_arithmetic : enable
+#extension GL_KHR_shader_subgroup_ballot : enable
+#endif
+
 //TODO: increase local size
 #define LOCAL_SIZE_MSK ((1<<LOCAL_SIZE_BITS)-1)
 #define LOCAL_SIZE (1<<LOCAL_SIZE_BITS)
@@ -78,7 +84,19 @@ void enqueueSelfForRender(in UnpackedNode node) {
     if (renderQueueIndex < renderQueueMaxSize) {
         lastRenderFrame[getId(node)] = frameId;
         if (!isEmptyMesh(node)) {
+#ifdef USE_SUBGROUPS
+            uint inc = 1;
+            uint localOffset = subgroupExclusiveAdd(inc);
+            uint totalCount = subgroupAdd(inc);
+            uint baseIdx = 0;
+            if (subgroupElect() && totalCount > 0) {
+                baseIdx = atomicAdd(renderQueueIndex, totalCount);
+            }
+            baseIdx = subgroupBroadcastFirst(baseIdx);
+            uint renderIndex = baseIdx + localOffset;
+#else
             uint renderIndex = atomicAdd(renderQueueIndex, 1);
+#endif
             if (renderIndex < renderQueueMaxSize) {
                 renderQueue[renderIndex] = getMesh(node);
 

@@ -60,6 +60,7 @@ public class MDICSectionRenderer extends AbstractSectionRenderer<MDICViewport, B
 
             .defineIf("HAS_STATISTICS", RenderStatistics.enabled)
             .defineIf("STATISTICS_BUFFER_BINDING", RenderStatistics.enabled, STATISTICS_BUFFER_BINDING)
+            .defineIf("USE_SUBGROUPS", Capabilities.INSTANCE.subgroup)
 
             .add(ShaderType.COMPUTE, "voxy:lod/gl46/cmdgen.comp")
             .compile();
