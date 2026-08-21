@@ -73,5 +73,14 @@
   "voxy.sodium.option.geometry_buffer_size.tooltip": "VRAM allocated for LOD geometry storage. Auto scales safely (512MB-1GB) to prevent VRAM overflow and stuttering on 4GB-8GB GPUs.",
 
   "voxy.sodium.option.water_ssr_reflection": "LOD Water Reflection (SSR)",
-  "voxy.sodium.option.water_ssr_reflection.tooltip": "Enables Screen-Space Reflections (SSR) and distance-attenuated wave normals on distant water and translucent surfaces."
+  "voxy.sodium.option.water_ssr_reflection.tooltip": "Enables Screen-Space Reflections (SSR) and distance-attenuated wave normals on distant water and translucent surfaces.",
+
+  "voxy.sodium.option.auto_pregen": "Auto World Pre-generation",
+  "voxy.sodium.option.auto_pregen.tooltip": "Automatically pre-generates LOD terrain in a radius upon joining a Singleplayer world. Already generated chunks are skipped instantly.",
+
+  "voxy.sodium.option.auto_pregen_radius": "Auto Pre-gen Radius",
+  "voxy.sodium.option.auto_pregen_radius.tooltip": "Radius of chunks around world spawn to automatically pre-generate into LOD data (16 to 128 chunks).",
+
+  "voxy.sodium.option.auto_pregen_threads": "Pre-gen Worker Threads",
+  "voxy.sodium.option.auto_pregen_threads.tooltip": "Number of dedicated background worker threads for World Pre-generation (1 to 4 threads)."
 }

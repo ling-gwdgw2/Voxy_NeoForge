@@ -85,6 +85,23 @@ public class VoxyConfigMenu implements ConfigEntryPoint {
                                         new Range(0, 2048, 256))
                                         .setFormatter(v->Component.literal(v == 0 ? "Auto" : (v + " MB")))
                                         .setPostChangeFlags(RENDER_RELOAD)
+                        ), new Group(
+                                new BoolOption(
+                                        "voxy:auto_pregen_enabled",
+                                        Component.translatable("voxy.sodium.option.auto_pregen"),
+                                        ()->CFG.autoPregenOnJoin, v->CFG.autoPregenOnJoin=v),
+                                new IntOption(
+                                        "voxy:auto_pregen_radius",
+                                        Component.translatable("voxy.sodium.option.auto_pregen_radius"),
+                                        ()->CFG.autoPregenRadius, v->CFG.autoPregenRadius=v,
+                                        new Range(16, 128, 16))
+                                        .setFormatter(v->Component.literal(v + " chunks")),
+                                new IntOption(
+                                        "voxy:auto_pregen_threads",
+                                        Component.translatable("voxy.sodium.option.auto_pregen_threads"),
+                                        ()->CFG.autoPregenThreads, v->CFG.autoPregenThreads=v,
+                                        new Range(1, 4, 1))
+                                        .setFormatter(v->Component.literal(v + " Threads"))
                         )
                 ).setEnabler("voxy:enabled"),
                 new Page(Component.translatable("voxy.config.rendering"),

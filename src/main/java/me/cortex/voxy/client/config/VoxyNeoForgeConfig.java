@@ -87,6 +87,19 @@ public class VoxyNeoForgeConfig {
                      "Prevents VRAM overflow and crashes on GPUs with 4GB/6GB/8GB VRAM.")
             .defineInRange("geometryBufferSizeMB", 0, 0, 2048);
 
+    // World Pre-generation settings
+    private static final ModConfigSpec.BooleanValue AUTO_PREGEN_ON_JOIN = BUILDER
+            .comment("Automatically pre-generate LOD chunks in radius upon joining a Singleplayer world")
+            .define("autoPregenOnJoin", false);
+
+    private static final ModConfigSpec.IntValue AUTO_PREGEN_RADIUS = BUILDER
+            .comment("Radius of chunks to auto pre-generate around world spawn (16-128 chunks)")
+            .defineInRange("autoPregenRadius", 32, 16, 128);
+
+    private static final ModConfigSpec.IntValue AUTO_PREGEN_THREADS = BUILDER
+            .comment("Number of background worker threads dedicated to World Pre-generation")
+            .defineInRange("autoPregenThreads", 2, 1, 4);
+
     // Debug settings
     private static final ModConfigSpec.BooleanValue RENDER_STATISTICS = BUILDER
             .comment("Show render statistics in F3 debug screen",
@@ -119,6 +132,9 @@ public class VoxyNeoForgeConfig {
         VoxyConfig.CONFIG.earthCurveRatio = EARTH_CURVE_RATIO.get();
         VoxyConfig.CONFIG.geometryBufferSizeMB = GEOMETRY_BUFFER_SIZE_MB.get();
         VoxyConfig.CONFIG.enableWaterSSR = ENABLE_WATER_SSR.get();
+        VoxyConfig.CONFIG.autoPregenOnJoin = AUTO_PREGEN_ON_JOIN.get();
+        VoxyConfig.CONFIG.autoPregenRadius = AUTO_PREGEN_RADIUS.get();
+        VoxyConfig.CONFIG.autoPregenThreads = AUTO_PREGEN_THREADS.get();
 
         // RenderStatistics is a runtime-only setting (not saved to JSON)
         RenderStatistics.enabled = RENDER_STATISTICS.get();
@@ -142,6 +158,9 @@ public class VoxyNeoForgeConfig {
                 EARTH_CURVE_RATIO.set(VoxyConfig.CONFIG.earthCurveRatio);
                 GEOMETRY_BUFFER_SIZE_MB.set(VoxyConfig.CONFIG.geometryBufferSizeMB);
                 ENABLE_WATER_SSR.set(VoxyConfig.CONFIG.enableWaterSSR);
+                AUTO_PREGEN_ON_JOIN.set(VoxyConfig.CONFIG.autoPregenOnJoin);
+                AUTO_PREGEN_RADIUS.set(VoxyConfig.CONFIG.autoPregenRadius);
+                AUTO_PREGEN_THREADS.set(VoxyConfig.CONFIG.autoPregenThreads);
                 RENDER_STATISTICS.set(RenderStatistics.enabled);
                 SPEC.save();
             }

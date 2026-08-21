@@ -22,6 +22,7 @@ public class MixinClientPacketListener {
                 }
                 VoxyCommon.createInstance();
             }
+            me.cortex.voxy.client.pregen.WorldPregenerator.triggerAutoPregenIfEnabled();
         }
     }
 }

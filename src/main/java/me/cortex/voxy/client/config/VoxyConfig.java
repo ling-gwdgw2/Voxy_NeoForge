@@ -52,6 +52,11 @@ public class VoxyConfig {
     // LOD Water & Translucent Reflection (Screen-Space Reflection & wave normal enhancement)
     public boolean enableWaterSSR = true;
 
+    // World Pre-generation settings
+    public boolean autoPregenOnJoin = false;
+    public int autoPregenRadius = 32;
+    public int autoPregenThreads = 2;
+
     private static VoxyConfig loadOrCreate() {
         if (VoxyCommon.isAvailable()) {
             var path = getConfigPath();
