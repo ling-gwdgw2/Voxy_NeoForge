@@ -89,19 +89,41 @@ public class VoxyConfigMenu implements ConfigEntryPoint {
                                 new BoolOption(
                                         "voxy:auto_pregen_enabled",
                                         Component.translatable("voxy.sodium.option.auto_pregen"),
-                                        ()->CFG.autoPregenOnJoin, v->CFG.autoPregenOnJoin=v),
+                                        ()->CFG.autoPregenOnJoin, v->CFG.autoPregenOnJoin=v)
+                                        .setPostChangeRunner(c -> {
+                                            var mc = Minecraft.getInstance();
+                                            if (c) {
+                                                if (mc.player != null && mc.getSingleplayerServer() != null) {
+                                                    me.cortex.voxy.client.pregen.WorldPregenerator.getInstance().startPregen(CFG.autoPregenRadius);
+                                                }
+                                            } else {
+                                                me.cortex.voxy.client.pregen.WorldPregenerator.getInstance().cancelPregen();
+                                            }
+                                        }, "voxy:enabled"),
                                 new IntOption(
                                         "voxy:auto_pregen_radius",
                                         Component.translatable("voxy.sodium.option.auto_pregen_radius"),
                                         ()->CFG.autoPregenRadius, v->CFG.autoPregenRadius=v,
                                         new Range(16, 128, 16))
-                                        .setFormatter(v->Component.literal(v + " chunks")),
+                                        .setFormatter(v->Component.literal(v + " chunks"))
+                                        .setPostChangeRunner(r -> {
+                                            var pregen = me.cortex.voxy.client.pregen.WorldPregenerator.getInstance();
+                                            if (pregen.isRunning()) {
+                                                pregen.startPregen(r);
+                                            }
+                                        }, "voxy:auto_pregen_enabled"),
                                 new IntOption(
                                         "voxy:auto_pregen_threads",
                                         Component.translatable("voxy.sodium.option.auto_pregen_threads"),
                                         ()->CFG.autoPregenThreads, v->CFG.autoPregenThreads=v,
                                         new Range(1, 4, 1))
                                         .setFormatter(v->Component.literal(v + " Threads"))
+                                        .setPostChangeRunner(t -> {
+                                            var pregen = me.cortex.voxy.client.pregen.WorldPregenerator.getInstance();
+                                            if (pregen.isRunning()) {
+                                                pregen.startPregen(CFG.autoPregenRadius);
+                                            }
+                                        }, "voxy:auto_pregen_enabled")
                         )
                 ).setEnabler("voxy:enabled"),
                 new Page(Component.translatable("voxy.config.rendering"),

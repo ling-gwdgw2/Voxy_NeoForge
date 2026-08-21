@@ -16,11 +16,12 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * World Pre-generator for Voxy LODs.
  * Generates and ingests chunks in a circular radius centered on the player (Center-Out Radial / Spiral Order)
- * using background worker threads with smart-skip of existing chunks and real-time HUD progress.
+ * using true multi-threaded background worker threads with smart-skip of existing chunks and real-time HUD progress.
  */
 public class WorldPregenerator {
     private static final WorldPregenerator INSTANCE = new WorldPregenerator();
@@ -39,8 +40,9 @@ public class WorldPregenerator {
     private long startTime;
 
     public synchronized boolean startPregen(int radiusChunks) {
+        // If already running, cancel previous run first to restart cleanly
         if (this.isRunning.get()) {
-            return false;
+            this.cancelPregen();
         }
 
         var mc = Minecraft.getInstance();
@@ -50,7 +52,9 @@ public class WorldPregenerator {
 
         var server = mc.getSingleplayerServer();
         if (server == null) {
-            mc.gui.getChat().addMessage(Component.literal("[Voxy Pregen] Pre-generation is currently available in Singleplayer / Integrated Server worlds.").withStyle(ChatFormatting.YELLOW));
+            if (mc.gui != null && mc.gui.getChat() != null) {
+                mc.gui.getChat().addMessage(Component.literal("[Voxy Pregen] Pre-generation is currently available in Singleplayer / Integrated Server worlds.").withStyle(ChatFormatting.YELLOW));
+            }
             return false;
         }
 
@@ -90,21 +94,32 @@ public class WorldPregenerator {
             return t;
         });
 
-        mc.gui.getChat().addMessage(Component.literal(String.format("[Voxy Pregen] Starting circular LOD generation in %d chunks radius (%d total chunks with %d threads)...", radiusChunks, total, threads)).withStyle(ChatFormatting.GREEN));
+        if (mc.gui != null && mc.gui.getChat() != null) {
+            mc.gui.getChat().addMessage(Component.literal(String.format("[Voxy Pregen] Starting circular LOD generation in %d chunks radius (%d total chunks with %d worker threads)...", radiusChunks, total, threads)).withStyle(ChatFormatting.GREEN));
+        }
 
-        this.pregenExecutor.submit(() -> {
-            try {
-                long lastHudUpdate = System.currentTimeMillis();
+        AtomicInteger offsetIndex = new AtomicInteger(0);
+        AtomicLong lastHudUpdate = new AtomicLong(System.currentTimeMillis());
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        for (int t = 0; t < threads; t++) {
+            futures.add(CompletableFuture.runAsync(() -> {
                 WorldEngine engine = WorldIdentifier.ofEngineNullable(mc.level);
-                int minY = mc.level.getMinBuildHeight() >> 4;
-                int maxY = mc.level.getMaxBuildHeight() >> 4;
+                int minY = mc.level != null ? mc.level.getMinBuildHeight() >> 4 : -4;
+                int maxY = mc.level != null ? mc.level.getMaxBuildHeight() >> 4 : 20;
 
-                for (var offset : offsets) {
-                    if (!this.isRunning.get() || Thread.currentThread().isInterrupted() || mc.level == null || mc.player == null || mc.getSingleplayerServer() == null || !mc.getSingleplayerServer().isRunning()) {
+                while (this.isRunning.get()) {
+                    if (Thread.currentThread().isInterrupted() || mc.level == null || mc.player == null || mc.getSingleplayerServer() == null || !mc.getSingleplayerServer().isRunning()) {
                         this.isRunning.set(false);
                         break;
                     }
 
+                    int idx = offsetIndex.getAndIncrement();
+                    if (idx >= offsets.size()) {
+                        break;
+                    }
+
+                    var offset = offsets.get(idx);
                     int cx = centerChunkX + offset.dx;
                     int cz = centerChunkZ + offset.dz;
 
@@ -141,9 +156,9 @@ public class WorldPregenerator {
 
                     int current = this.processedChunks.incrementAndGet();
                     long now = System.currentTimeMillis();
+                    long last = lastHudUpdate.get();
 
-                    if (now - lastHudUpdate >= 250) {
-                        lastHudUpdate = now;
+                    if (now - last >= 250 && lastHudUpdate.compareAndSet(last, now)) {
                         double elapsedSec = Math.max(0.1, (now - this.startTime) / 1000.0);
                         double rate = current / elapsedSec;
                         int percent = (int) ((current / (double) total) * 100.0);
@@ -157,29 +172,25 @@ public class WorldPregenerator {
                         });
                     }
                 }
+            }, this.pregenExecutor));
+        }
 
-                long totalElapsed = System.currentTimeMillis() - this.startTime;
-                double seconds = totalElapsed / 1000.0;
-                int finished = this.processedChunks.get();
-                int skipped = this.skippedChunks.get();
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((res, err) -> {
+            long totalElapsed = System.currentTimeMillis() - this.startTime;
+            double seconds = totalElapsed / 1000.0;
+            int finished = this.processedChunks.get();
+            int skipped = this.skippedChunks.get();
 
-                mc.execute(() -> {
-                    if (mc.gui != null && mc.gui.getChat() != null && mc.player != null) {
-                        if (this.isRunning.get()) {
-                            mc.gui.getChat().addMessage(Component.literal(
-                                    String.format("[Voxy Pregen] Finished! Processed %d chunks (%d skipped) in %.2f seconds.", finished, skipped, seconds)
-                            ).withStyle(ChatFormatting.GREEN));
-                        }
+            mc.execute(() -> {
+                if (mc.gui != null && mc.gui.getChat() != null && mc.player != null) {
+                    if (this.isRunning.get()) {
+                        mc.gui.getChat().addMessage(Component.literal(
+                                String.format("[Voxy Pregen] Finished! Processed %d chunks (%d skipped) in %.2f seconds.", finished, skipped, seconds)
+                        ).withStyle(ChatFormatting.GREEN));
                     }
-                });
-
-            } catch (Exception e) {
-                if (this.isRunning.get()) {
-                    Logger.error("Error during Voxy world pre-generation", e);
                 }
-            } finally {
-                this.isRunning.set(false);
-            }
+            });
+            this.isRunning.set(false);
         });
 
         return true;
