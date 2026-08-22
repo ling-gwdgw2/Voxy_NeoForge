@@ -181,6 +181,9 @@ public class IrisVoxyRenderPipeline extends AbstractRenderPipeline {
     public void setupAndBindTranslucent(Viewport<?> viewport) {
         this.fbTranslucent.bind();
         this.doBindings();
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(true);
         if (this.data.getBlender() != null) {
             this.data.getBlender().run();
         }
