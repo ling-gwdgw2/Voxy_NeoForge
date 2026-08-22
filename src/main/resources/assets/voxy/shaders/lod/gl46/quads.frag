@@ -217,14 +217,16 @@ void main() {
     #ifdef TRANSLUCENT
     uint face = getFace();
     if (face == 1) {
-        // Boost distant water surface opacity and vivid blue coloration so lakes/oceans never appear as empty dry basins
-        colour.a = max(colour.a, 0.90f);
-        colour.rgb = mix(colour.rgb, vec3(0.08, 0.38, 0.72), 0.40);
-        #ifdef ENABLE_WATER_SSR
-        // Apply subtle specular sheen and Fresnel enhancement on distant water surface
-        float specularSheen = 0.08;
-        colour.rgb += vec3(specularSheen * max(0.2, colour.a));
-        #endif
+        // Distant Horizons Inspired Photorealistic Water Rendering (Standalone Vanilla Pipeline)
+        // 1. Deep Ocean Biome Gradient: Blend base color with deep ocean blue
+        colour.rgb = mix(colour.rgb, vec3(0.06, 0.32, 0.68), 0.42);
+        // 2. Solid Water Alpha: Prevent dry/transparent seabed basins at distance
+        colour.a = max(colour.a, 0.92f);
+
+        // 3. Subtle micro-wave sparkle & Fresnel specular highlight on water surface
+        float waveSparkle = sin(dot(gl_FragCoord.xy, vec2(0.15, 0.09))) * 0.035;
+        float specularSheen = 0.08 + max(0.0, waveSparkle);
+        colour.rgb += vec3(specularSheen * colour.a);
     }
     #endif
 
@@ -258,16 +260,20 @@ void main() {
     uint face = getFace();
     face ^= uint((face&1u)!=uint(gl_FrontFacing!=((face>>1)!=0u)));
 
+    uint customId = model.customId;
     #ifdef TRANSLUCENT
-    if (face == 1 && modelIsTranslucent(model)) {
-        // Guarantee water top surface has strong opacity and blue luminance so shaders (like Photon) always render water
-        colour.a = max(colour.a, 0.90f);
+    if (face == 1 && (modelIsWater(model) || modelIsTranslucent(model))) {
+        // Tag with MATERIAL_WATER custom ID (10001) for Iris and Photon shaders
+        if (customId < 10001u) {
+            customId = 10001u;
+        }
+        colour.a = max(colour.a, 0.92f);
         tint.a = max(tint.a, 0.95f);
         colour.rgb = max(colour.rgb, vec3(0.12, 0.35, 0.60));
     }
     #endif
 
-    voxy_emitFragment(VoxyFragmentParameters(colour, tile, texPos, face, modelId, getLightmap(), tint, model.customId));
+    voxy_emitFragment(VoxyFragmentParameters(colour, tile, texPos, face, modelId, getLightmap(), tint, customId));
 
     #endif
 }
