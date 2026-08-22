@@ -4,7 +4,7 @@
 
 ---
 
-## 🙏 Special Thanks & Attribution
+##  Special Thanks & Attribution
 
 **All original credit for Voxy goes to [MCRcortex](https://github.com/MCRcortex)**, the creator of this revolutionary GPU-driven LOD rendering engine.
 
@@ -14,20 +14,20 @@
 
 ---
 
-## 📜 License Notice
+## License Notice
 
 The original Voxy mod is licensed under **All Rights Reserved (ARR)** by MCRcortex. This community port is provided for personal use and non-commercial development. Please respect the original author's copyright.
 
 ---
 
-## 🚀 Key Improvements in voxyNeoForge V1 (Changelog)
+## Key Improvements in voxyNeoForge V1 (Changelog)
 
-### 1. 🎨 Full Iris 1.8.14 & Photon Shader Compatibility
+### 1. Full Iris 1.8.14 & Photon Shader Compatibility
 - **Native `#define VOXY` Macro**: Directly injected into Iris shader preprocessors, allowing shaders like *Photon v1.3b*, *Complementary Shaders*, and *Solas* to render distant LOD terrain seamlessly.
 - **Depth Sampler Aliasing**: Added multi-alias bindings (`vxDepthTexOpaque`, `vxDepthTexTrans`, `dhDepthTex`, `dhDepthTex0`) to prevent missing texture crashes.
 - **Shadow Pass Isolation**: Isolated shadow matrix calculations to prevent `Framebuffer incomplete (36054)` crashes and high-altitude flickering during fast flight.
 
-### 2. 🧠 Smart Adaptive VRAM Geometry Budgeting
+### 2.Smart Adaptive VRAM Geometry Budgeting
 - **Auto-scaled VRAM Allocation**: Dynamically calculates safe geometry buffers based on GPU VRAM capacity:
   - **4 GB GPUs**: ~`512 MB` (~67 million quads)
   - **6 GB GPUs**: ~`768 MB` (~100 million quads — leaves 5+ GB for shaders/game)
@@ -36,7 +36,7 @@ The original Voxy mod is licensed under **All Rights Reserved (ARR)** by MCRcort
 - **Eliminates PCIe Stuttering**: Prevents VRAM overflow onto system RAM, eliminating micro-stutters and sudden FPS drops.
 - **In-Game VRAM Budget Setting**: Added configurable `VRAM Geometry Budget` in Sodium settings.
 
-### 3. ⚙️ Direct Native Sodium 0.8.12 GUI Integration
+### 3.Direct Native Sodium 0.8.12 GUI Integration
 - Built directly on Sodium's modern `ConfigEntryPoint` API (`ConfigBuilder`).
 - Complete in-game settings tab under **Options -> Video Settings -> Voxy**:
   - *Enable Voxy / Master Switch*
@@ -49,17 +49,17 @@ The original Voxy mod is licensed under **All Rights Reserved (ARR)** by MCRcort
   - *Environmental Fog Toggle*
   - *F3 Debug Render Statistics*
 
-### 4. 🧵 Multi-Threading & CPU Workload Balancing
+### 4.Multi-Threading & CPU Workload Balancing
 - Set background worker threads (`ModelBakerySubsystem`, `AsyncNodeManager`, `UnifiedServiceThreadPool`) to `Thread.NORM_PRIORITY - 1` and `Daemon`.
 - Prevents Voxy background voxelization from starving Minecraft's main game loop or Sodium's chunk builders.
 
-### 5. ⚡ JIT MethodHandles Voxelization & GPU Compute Alignment
+### 5.JIT MethodHandles Voxelization & GPU Compute Alignment
 - **MethodHandles `PalettedContainer` Access**: Replaced standard Java Reflection in `WorldConversionFactory` with `MethodHandle.invoke()` to allow HotSpot JIT direct machine code inlining, accelerating chunk voxelization by **10x-20x for field lookups** with zero reflection GC churn.
 - **Synchronized 64-Thread Compute Workgroups**: Standardized workgroup sizes across `cmdgen.comp`, `buildtranslucents.comp`, and `prep.comp` for maximum GPU occupancy on modern NVIDIA, AMD, and Intel architectures.
 
 ---
 
-## 📋 Compatibility & Requirements
+## Compatibility & Requirements
 
 ### Required Dependencies
 | Dependency | Version | Mod Link |
@@ -80,7 +80,7 @@ The original Voxy mod is licensed under **All Rights Reserved (ARR)** by MCRcort
 
 ---
 
-## 🔨 Building from Source
+## Building from Source
 
 ```bash
 git clone https://github.com/ling-gwdgw2/Voxy_NeoForge.git

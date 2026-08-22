@@ -5,302 +5,125 @@
 Before setting up the testing environment, ensure you have:
 
 - **Java 21 or later** (required for Minecraft 1.21.1)
-- **Prism Launcher** installed ([download here](https://prismlauncher.org/download/))
+- **Prism Launcher / CurseForge / Modrinth App** installed
 - **Internet connection** for downloading Minecraft and mod dependencies
+
+---
 
 ## Step 1: Create NeoForge 1.21.1 Profile
 
 ### 1.1 Create New Instance
-
-1. Open Prism Launcher
-2. Click **"Add Instance"** in the top toolbar
-3. In the Create New Instance dialog:
+1. Open Prism Launcher / CurseForge
+2. In the Create New Instance dialog:
    - **Name:** `Voxy NeoForge 1.21.1 Testing`
-   - **Version:** Select `1.21.1`
-   - **Mod Loader:** Select **NeoForge**
-   - **Loader Version:** Select latest `21.1.x` version (e.g., `21.1.73` or newer)
-4. Click **"OK"** to create the instance
+   - **Version:** `1.21.1`
+   - **Mod Loader:** **NeoForge**
+   - **Loader Version:** `21.1.65` or newer (e.g., `21.1.73`+)
 
-### 1.2 Configure Java Runtime
+### 1.2 Configure Java Runtime & Memory
+1. Open Instance Settings → **Java**
+2. Ensure Java 21+ is selected
+3. Set **Maximum memory allocation** to at least **4096 MiB** (recommended: 6144 - 8192 MiB for shaders and large LOD render distance).
 
-1. Right-click the newly created instance
-2. Select **"Edit Instance"**
-3. Navigate to **"Settings"** → **"Java"**
-4. Enable **"Use custom Java installation"** if needed
-5. Ensure Java 21+ is selected
-6. Set **"Maximum memory allocation"** to at least **4096 MiB** (recommended: 6144 MiB or higher for Voxy's voxelization)
-
-### 1.3 Configure JVM Arguments (Optional but Recommended)
-
-In the Java settings, add these JVM arguments for better performance:
-
+### 1.3 JVM Arguments (Recommended)
 ```
 -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1
 ```
 
+---
+
 ## Step 2: Install Required Dependencies
 
-### 2.1 Download Sodium for NeoForge
+Ensure the following mods are installed in the `mods/` directory:
 
-Voxy requires **Sodium 0.6.9 or later** for NeoForge 1.21.1:
+| Mod | Required Version | Purpose |
+| :--- | :--- | :--- |
+| **Sodium (NeoForge)** | 0.6.9+ (or 0.8.x) | Core renderer & In-game Settings Menu |
+| **Iris Shaders (NeoForge)** | 1.8.0+ (or 1.8.14) | *(Optional)* Shaderpack integration (Photon, Complementary, Solas) |
 
-1. Go to [Modrinth Sodium page](https://modrinth.com/mod/sodium) or [CurseForge Sodium page](https://www.curseforge.com/minecraft/mc-mods/sodium)
-2. Download the **NeoForge 1.21.1** compatible version (0.6.9+)
-3. **Important:** Ensure you download the **NeoForge** version, NOT the Fabric version
-
-### 2.2 Install Sodium
-
-1. In Prism Launcher, right-click the instance
-2. Select **"Edit Instance"**
-3. Navigate to **"Mods"** tab
-4. Click **"Add .jar"** or **"Add file"**
-5. Select the downloaded Sodium jar file
-6. Verify Sodium appears in the mod list
+---
 
 ## Step 3: Install Voxy Mod
 
-### 3.1 Build Voxy (if not already built)
-
-From the project directory:
-
+### 3.1 Build Voxy from Source
 ```bash
 ./gradlew build
 ```
-
-The compiled mod will be located at:
+The compiled mod file is located at:
 ```
-build/libs/voxy-0.2.9-alpha.jar
+build/libs/voxyNeoForge-V1-1.0.0.jar
 ```
 
 ### 3.2 Install Voxy
+Copy `build/libs/voxyNeoForge-V1-1.0.0.jar` into your Minecraft instance `mods/` folder.
 
-1. In Prism Launcher, ensure you're still in **"Edit Instance"** → **"Mods"** tab
-2. Click **"Add .jar"**
-3. Navigate to `build/libs/voxy-0.2.9-alpha.jar`
-4. Click **"Open"**
-5. Verify both Sodium and Voxy appear in the mod list
+---
 
-### 3.3 Verify Dependencies
+## Step 4: In-Game Settings UI (Sodium Voxy Tab)
 
-Ensure the following mods are installed and enabled:
-- ✅ **Sodium** (0.6.9+)
-- ✅ **Voxy** (0.2.9-alpha)
+In-game, open **Options → Video Settings → Voxy Tab**:
 
-## Step 4: Launch Configuration
+1. **General Page:**
+   - **Enable Voxy:** Master switch (`[x]`)
+   - **Chunk Ingestion:** Auto LOD capture (`[x]`)
+   - **VRAM Geometry Budget:** `Auto` or `512MB - 1536MB`
+   - **Auto World Pre-generation:** `[x]` / `[ ]`
+   - **Auto Pre-gen Radius:** Slider (`16 - 128 chunks`)
+   - **Pre-gen Worker Threads:** Slider (`1 - 4 threads`)
+2. **Rendering Page:**
+   - **LOD Rendering:** Toggle visual output
+   - **Pixels^2 Subdivision:** Detail quality
+   - **LOD Render Distance:** Slider (e.g. 16 = 512 chunks, 32 = 1024 chunks)
+   - **LOD Boundary Overlap:** Smooth transitions (0-4)
+   - **World Curvature:** Spherical planet effect (0 = flat, 50-5000)
+   - **LOD Water Reflection (SSR):** Translucent screen-space reflections
+   - **Environmental Fog:** Atmospheric blending
+   - **Debug Statistics:** F3 HUD display
 
-### 4.1 First Launch
-
-1. Close the "Edit Instance" window
-2. Double-click the instance to launch
-3. Wait for Minecraft to start (first launch may take longer)
-4. If you encounter any crashes, check the logs (see Troubleshooting section)
-
-### 4.2 In-Game Voxy Configuration
-
-Once in-game:
-
-1. Create or load a world
-2. Access Voxy settings (check key bindings or mod menu)
-3. Configure render distance and LOD settings
-4. Test voxelization and chunk rendering
+---
 
 ## Step 5: Testing Checklist
 
-### Basic Functionality Tests
+### 1. Basic Functionality
+- [ ] **Mod loads without crashes** (NeoForge 1.21.1)
+- [ ] **World loads successfully** (Singleplayer & Multiplayer)
+- [ ] **LOD terrain renders seamlessly** beyond vanilla render distance
+- [ ] **Fluid rendering works** (water, river, ocean LODs)
+- [ ] **Biome tinting applies correctly** (grass, leaves, water color transitions)
 
-- [ ] **Mod loads without crashes**
-- [ ] **Voxy appears in mod list** (check via Mod Menu if installed)
-- [ ] **World loads successfully**
-- [ ] **Chunk voxelization executes** (check for distant terrain rendering)
-- [ ] **No console errors during normal gameplay**
-- [ ] **Shader compilation succeeds** (check logs for GL errors)
-- [ ] **Block model textures render correctly**
-- [ ] **Fluid rendering works** (test with water/lava)
-- [ ] **Biome tinting applies correctly** (grass, foliage, water colors)
+### 2. World Pre-Generation (`/voxy pregen`)
+- [ ] Test command: `/voxy pregen 32`
+- [ ] Progress HUD appears on action bar with `%`, chunks count, and rate
+- [ ] Generation radiates in a **circular shape 360°** outward from the player
+- [ ] Chunks already stored in DB are **skipped instantly**
+- [ ] Command `/voxy pregen cancel` cancels generation immediately
+- [ ] Leaving world ("Save & Quit to Title") **stops background threads immediately**
 
-### Performance Tests
+### 3. Performance & Stability
+- [ ] Stable 60-144+ FPS during fast flight (`/fly`, spectator mode)
+- [ ] **ZSTD Compression**: Check world folder `.voxy` database size (saving >50% disk space)
+- [ ] **No Black Square Chunks**: Distant LODs render in daylight without dark glitches
+- [ ] **Zero Memory Leaks**: Memory remains stable over extended gameplay
 
-- [ ] **FPS is stable during chunk loading**
-- [ ] **Memory usage is reasonable** (press F3 in-game)
-- [ ] **No memory leaks over extended play sessions**
-- [ ] **Voxelization performance is acceptable** (check taskbar progress if on Windows)
+### 4. Shaders & Iris Compatibility
+- [ ] Test with **Photon Shader v1.3b** (Atmosphere, volumetric clouds, shadow blending)
+- [ ] Test with **Complementary Reimagined / Unbound**
+- [ ] Test with **Solas Shader**
+- [ ] Verify water SSR reflections and fog integration
 
-### Edge Case Tests
+---
 
-- [ ] **Leaves render correctly** (RenderType.solid override)
-- [ ] **Translucent blocks work** (glass, stained glass)
-- [ ] **Cutout blocks work** (doors, trapdoors)
-- [ ] **Block entities handle correctly** (or are skipped appropriately)
-- [ ] **Biome transitions are smooth**
-- [ ] **LOD mipmap levels display correctly**
+## Step 6: Troubleshooting
 
-## Troubleshooting
+### 1. Viewing Logs
+- Open `logs/latest.log` or check `crash-reports/`
+- Look for `[Voxy]` prefix in log lines
 
-### Viewing Logs
-
-To check for errors:
-
-1. Right-click the instance in Prism Launcher
-2. Select **"Folder"** → **"View Logs"**
-3. Open `latest.log` to see runtime errors
-
-### Common Issues
-
-#### Issue: Crash on Launch
-
-**Symptoms:** Game crashes before reaching main menu
-
-**Possible Causes:**
-1. Incompatible Sodium version (check you have NeoForge version, not Fabric)
-2. Java version mismatch (ensure Java 21+)
-3. Missing NeoForge dependencies
-
-**Fix:**
-- Check `crash-reports/` folder for crash details
-- Verify Sodium is the NeoForge version
-- Ensure NeoForge 21.1+ is installed
-
-#### Issue: Black/Missing Textures
-
-**Symptoms:** Blocks render black or pink/purple checkerboard
-
-**Possible Causes:**
-1. Texture GL ID access not implemented (known limitation - see `ModelTextureBakery.java:231-234`)
-2. Shader compilation failures
-3. Block atlas binding issues
-
-**Fix:**
-- Check logs for GL errors
-- Check `blockTextureId` TODO implementation status
-- Consider implementing mixin accessor for `AbstractTexture.getId()`
-
-#### Issue: Reflection Errors
-
-**Symptoms:** Errors mentioning `PalettedContainer`, `Data`, `palette`, or `storage`
-
-**Possible Causes:**
-- Minecraft internals changed in update/patch
-- NeoForge remapping differences
-
-**Fix:**
-- Check `WorldConversionFactory.java` reflection initialization (lines 29-42)
-- Verify field names match current Minecraft version
-- Check console for `IllegalAccessException` or `NoSuchFieldException`
-
-#### Issue: FOV/Camera Problems
-
-**Symptoms:** Incorrect field of view or camera rendering
-
-**Possible Causes:**
-- FOV calculation fallback in `VoxyRenderSystem.java:385` may not account for modifiers
-
-**Fix:**
-- Consider implementing `ViewportEvent.ComputeFov` hook for accurate FOV
-- Check if other mods are modifying FOV
-
-#### Issue: Mipmap Issues
-
-**Symptoms:** LOD textures look incorrect at distance
-
-**Possible Causes:**
-- Hardcoded `maxMipLevel = 4` in `ModelStore.java:35` may not match actual atlas
-
-**Fix:**
-- Try adjusting the hardcoded value (2, 4, or 6)
-- Implement reflection to access `TextureAtlas.maxMipLevel`
-- Check in-game video settings for mipmap level configuration
-
-## Known Limitations (Ported from Fabric)
-
-The following are known limitations in this NeoForge port:
-
-1. **PalettedContainer.Data Access**
-   - Uses reflection due to package-private visibility
-   - Functional but may have performance overhead
-   - Location: `WorldConversionFactory.java:24-66`
-
-2. **TextureAtlas.maxMipLevel**
-   - Hardcoded to `4` (field is now private)
-   - May need adjustment based on user settings
-   - Location: `ModelStore.java:33-35`
-
-3. **BlockColor Access**
-   - Uses reflection to access private `blockColors` field
-   - Location: `ModelFactory.java:741-742`
-
-4. **Texture GL ID Access**
-   - Stubbed out, currently not implemented
-   - Will fail at runtime if code path is reached
-   - Location: `ModelTextureBakery.java:231-234`
-   - **Fix Required:** Implement mixin accessor for texture GL IDs
-
-5. **FOV Calculation**
-   - Uses fallback `options.fov().get()` instead of `GameRenderer.getFov()`
-   - May not account for FOV modifiers from other mods
-   - Location: `VoxyRenderSystem.java:384-386`
-
-## Advanced Testing
-
-### Debug Mode
-
-To enable verbose logging for debugging:
-
-1. Edit `options.txt` in the instance folder
-2. Add Voxy-specific debug flags (if implemented)
-3. Restart Minecraft
-
-### Profiling
-
-To profile performance:
-
-1. Use Minecraft's built-in profiler (press F3 + L)
-2. Use external tools like JProfiler or VisualVM
-3. Monitor taskbar progress on Windows for voxelization status
-
-### Shader Debugging
-
-To check shader compilation:
-
-1. Monitor logs for GL shader errors
-2. Check `resources/assets/voxy/shaders/` for GLSL source
-3. Use OpenGL debugging tools (apitrace, RenderDoc)
-
-## Reporting Issues
-
-When reporting issues, please include:
-
-1. **Crash report** (from `crash-reports/` folder)
-2. **Latest log** (from `logs/latest.log`)
-3. **Mod list** (all installed mods and versions)
-4. **System information** (Java version, GPU, OS)
-5. **Steps to reproduce**
-6. **Expected vs actual behavior**
-
-## Next Steps After Testing
-
-Once basic testing is complete:
-
-1. **Address Runtime TODOs:**
-   - Implement texture GL ID access (ModelTextureBakery.java:231-234)
-   - Consider FOV event integration (VoxyRenderSystem.java:385)
-   - Test maxMipLevel value across different texture packs
-
-2. **Optimize Reflection:**
-   - Profile PalettedContainer.Data access performance
-   - Consider caching or alternative approaches
-
-3. **Expand Testing:**
-   - Test with various texture packs
-   - Test with complementary mods (shaders, optimization mods)
-   - Test in multiplayer environments
-
-4. **Documentation:**
-   - Document any new issues discovered
-   - Update inline TODO comments as issues are resolved
-   - Create user-facing documentation for Voxy features
+### 2. Common Issues & Solutions
+- **Multiplayer missing chunks**: Voxy auto-recovers lighting asynchronously; ensure server connection is stable.
+- **VRAM Out of Memory**: Lower `VRAM Geometry Budget` to `512MB` or `768MB` in Video Settings → Voxy.
+- **Shader depth mismatch**: Ensure Iris 1.8.x and compatible shaderpack (Photon, Complementary, Solas) are used.
 
 ---
 
 **Happy Testing!**
-
-For issues or questions, refer to the [Voxy GitHub repository](https://github.com/MCRcortex/voxy/issues).
