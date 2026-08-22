@@ -14,9 +14,6 @@ public class VoxySamplers {
         String[] translucentNames = new String[]{"vxDepthTexTrans", "dhDepthTex", "dhDepthTex0"};
 
         samplers.addDynamicSampler(TextureType.TEXTURE_2D, () -> {
-            if (!IrisShaderPatch.isDistantShaderShadowsEnabled()) {
-                return 0;
-            }
             var pipeData = ((IGetIrisVoxyPipelineData)pipeline).voxy$getPipelineData();
             if (pipeData != null && pipeData.thePipeline != null) {
                 var dt = pipeData.thePipeline.fb.getDepthTex();
@@ -37,9 +34,6 @@ public class VoxySamplers {
         }, GlSampler.NEAREST, opaqueNames);
 
         samplers.addDynamicSampler(TextureType.TEXTURE_2D, () -> {
-            if (!IrisShaderPatch.isDistantShaderShadowsEnabled()) {
-                return 0;
-            }
             var pipeData = ((IGetIrisVoxyPipelineData)pipeline).voxy$getPipelineData();
             if (pipeData != null && pipeData.thePipeline != null) {
                 var dt = pipeData.thePipeline.fbTranslucent.getDepthTex();
