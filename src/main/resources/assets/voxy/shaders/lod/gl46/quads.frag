@@ -215,14 +215,16 @@ void main() {
     applyNaturalMicroVariation(colour.rgb, gl_FragCoord.xy);
 
     #ifdef TRANSLUCENT
-    #ifdef ENABLE_WATER_SSR
     uint face = getFace();
     if (face == 1) {
+        // Boost distant water surface opacity so lakes/oceans don't appear as empty dry transparent basins
+        colour.a = max(colour.a, 0.88f);
+        #ifdef ENABLE_WATER_SSR
         // Apply subtle specular sheen and Fresnel enhancement on distant water surface
         float specularSheen = 0.08;
         colour.rgb += vec3(specularSheen * max(0.2, colour.a));
+        #endif
     }
-    #endif
     #endif
 
     outColour = colour;

@@ -46,7 +46,7 @@ public class VoxyUniforms {
 
     public static void addUniforms(UniformHolder uniforms) {
         uniforms
-                .uniform1i(PER_FRAME, "vxRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 2) // In chunks (1 section = 32 blocks = 2 chunks)
+                .uniform1i(PER_FRAME, "vxRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32)
                 .uniformMatrix(PER_FRAME, "vxViewProj", VoxyUniforms::getViewProjection)
                 .uniformMatrix(PER_FRAME, "vxViewProjInv", new Inverted(VoxyUniforms::getViewProjection))
                 .uniformMatrix(PER_FRAME, "vxViewProjPrev", new PreviousMat(VoxyUniforms::getViewProjection))
@@ -63,12 +63,12 @@ public class VoxyUniforms {
                     float vanillaDistanceBlocks = rdChunks * 16.0f;
                     return me.cortex.voxy.client.VoxyClient.disableSodiumChunkRender() ? 0.1f : vanillaDistanceBlocks;
                 })
-                .uniform1f(PER_FRAME, "dhFarPlane", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32.0f))
-                .uniform1i(PER_FRAME, "dhRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 2)
+                .uniform1f(PER_FRAME, "dhFarPlane", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32 * 16))
+                .uniform1i(PER_FRAME, "dhRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32)
                 .uniform1i(PER_FRAME, "dhMinRenderDistance", () -> Minecraft.getInstance().options.getEffectiveRenderDistance())
-                .uniform1i(PER_FRAME, "dhMaxRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 2)
-                .uniform1f(PER_FRAME, "dhMinFogDistance", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32.0f * 0.75f))
-                .uniform1f(PER_FRAME, "dhMaxFogDistance", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32.0f))
+                .uniform1i(PER_FRAME, "dhMaxRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32)
+                .uniform1f(PER_FRAME, "dhMinFogDistance", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32 * 16 * 0.75f))
+                .uniform1f(PER_FRAME, "dhMaxFogDistance", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32 * 16))
                 .uniformMatrix(PER_FRAME, "dhProjection", VoxyUniforms::getProjection)
                 .uniformMatrix(PER_FRAME, "dhProjectionInverse", new Inverted(VoxyUniforms::getProjection))
                 .uniformMatrix(PER_FRAME, "dhPreviousProjection", new PreviousMat(VoxyUniforms::getProjection))
