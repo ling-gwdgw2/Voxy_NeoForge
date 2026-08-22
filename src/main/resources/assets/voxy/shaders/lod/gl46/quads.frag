@@ -217,8 +217,9 @@ void main() {
     #ifdef TRANSLUCENT
     uint face = getFace();
     if (face == 1) {
-        // Boost distant water surface opacity so lakes/oceans don't appear as empty dry transparent basins
-        colour.a = max(colour.a, 0.88f);
+        // Boost distant water surface opacity and vivid blue coloration so lakes/oceans never appear as empty dry basins
+        colour.a = max(colour.a, 0.90f);
+        colour.rgb = mix(colour.rgb, vec3(0.08, 0.38, 0.72), 0.40);
         #ifdef ENABLE_WATER_SSR
         // Apply subtle specular sheen and Fresnel enhancement on distant water surface
         float specularSheen = 0.08;
@@ -258,12 +259,12 @@ void main() {
     face ^= uint((face&1u)!=uint(gl_FrontFacing!=((face>>1)!=0u)));
 
     #ifdef TRANSLUCENT
-    #ifdef ENABLE_WATER_SSR
-    // If water SSR is enabled, ensure water top faces retain correct water material attributes
     if (face == 1 && modelIsTranslucent(model)) {
-        // Preserves upward normal vector and material metadata for Iris/Photon SSR
+        // Guarantee water top surface has strong opacity and blue luminance so shaders (like Photon) always render water
+        colour.a = max(colour.a, 0.90f);
+        tint.a = max(tint.a, 0.95f);
+        colour.rgb = max(colour.rgb, vec3(0.12, 0.35, 0.60));
     }
-    #endif
     #endif
 
     voxy_emitFragment(VoxyFragmentParameters(colour, tile, texPos, face, modelId, getLightmap(), tint, model.customId));
