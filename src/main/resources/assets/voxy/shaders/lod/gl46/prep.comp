@@ -7,8 +7,12 @@ layout(local_size_x = 1) in;
 
 #import <voxy:lod/gl46/bindings.glsl>
 
+#ifndef CMDGEN_WORKGROUP_SIZE
+#define CMDGEN_WORKGROUP_SIZE 64
+#endif
+
 void main() {
-    cmdGenDispatchX = ((sectionCount+127)/128);
+    cmdGenDispatchX = ((sectionCount + (CMDGEN_WORKGROUP_SIZE - 1)) / CMDGEN_WORKGROUP_SIZE);
     cmdGenDispatchY = 1;
     cmdGenDispatchZ = 1;
 

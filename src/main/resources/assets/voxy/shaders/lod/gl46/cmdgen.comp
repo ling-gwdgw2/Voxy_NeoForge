@@ -7,7 +7,11 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 #endif
 
-layout(local_size_x = 128) in;
+#ifndef CMDGEN_WORKGROUP_SIZE
+#define CMDGEN_WORKGROUP_SIZE 64
+#endif
+
+layout(local_size_x = CMDGEN_WORKGROUP_SIZE) in;
 
 #define DRAW_BUFFER_BINDING 1
 #define DRAW_COUNT_BUFFER_BINDING 2

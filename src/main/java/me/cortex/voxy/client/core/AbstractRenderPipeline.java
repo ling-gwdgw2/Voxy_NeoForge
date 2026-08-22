@@ -148,15 +148,19 @@ public abstract class AbstractRenderPipeline extends TrackedObject {
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_NOTEQUAL);//If != 1 pass
-        //We do here
         this.depthMaskBlit.blit();
         glDisable(GL_DEPTH_TEST);
 
-        //Blit depth 0 where stencil is 0
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-        glStencilFunc(GL_EQUAL, 0, 0xFF);
+        // When shaders are in use, writing 0.0 into depth destroys the depth buffer,
+        // causing shaders to see depth=0 (near clipping plane) on all vanilla pixels, producing black dots/shadow acne!
+        // The stencil test (glStencilFunc(GL_EQUAL, 1, 0xFF)) already isolates Voxy terrain from vanilla terrain.
+        if (!me.cortex.voxy.client.core.util.IrisUtil.irisShaderPackEnabled()) {
+            //Blit depth 0 where stencil is 0
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+            glStencilFunc(GL_EQUAL, 0, 0xFF);
 
-        this.depthSetBlit.blit();
+            this.depthSetBlit.blit();
+        }
 
         glDepthFunc(GL_LEQUAL);
         glColorMask(true,true,true,true);

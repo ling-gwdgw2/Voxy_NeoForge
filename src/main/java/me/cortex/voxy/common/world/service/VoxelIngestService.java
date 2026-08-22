@@ -54,33 +54,35 @@ public class VoxelIngestService {
 
     @NotNull
     private static ILightingSupplier getLightingSupplier(IngestSection task) {
-        ILightingSupplier supplier = (x,y,z) -> (byte) 0;
         var sla = task.skyLight;
         var bla = task.blockLight;
         boolean sl = sla != null && !sla.isEmpty();
         boolean bl = bla != null && !bla.isEmpty();
-        if (sl || bl) {
-            if (sl && bl) {
-                supplier = (x,y,z)-> {
-                    int block = Math.min(15,bla.get(x, y, z));
-                    int sky = Math.min(15,sla.get(x, y, z));
-                    return (byte) (sky|(block<<4));
-                };
-            } else if (bl) {
-                supplier = (x,y,z)-> {
-                    int block = Math.min(15,bla.get(x, y, z));
-                    int sky = 0;
-                    return (byte) (sky|(block<<4));
-                };
-            } else {
-                supplier = (x,y,z)-> {
-                    int block = 0;
-                    int sky = Math.min(15,sla.get(x, y, z));
-                    return (byte) (sky|(block<<4));
-                };
-            }
+
+        // Default sky light to 15 (full daylight) if light arrays are uninitialized or delayed
+        // This permanently eliminates pitch-black square chunks in distant LOD rendering.
+        final byte defaultSky = 15;
+
+        if (sl && bl) {
+            return (x, y, z) -> {
+                int block = Math.min(15, bla.get(x, y, z));
+                int sky = Math.min(15, sla.get(x, y, z));
+                return (byte) (sky | (block << 4));
+            };
+        } else if (sl) {
+            return (x, y, z) -> {
+                int block = 0;
+                int sky = Math.min(15, sla.get(x, y, z));
+                return (byte) (sky | (block << 4));
+            };
+        } else if (bl) {
+            return (x, y, z) -> {
+                int block = Math.min(15, bla.get(x, y, z));
+                return (byte) (defaultSky | (block << 4));
+            };
+        } else {
+            return (x, y, z) -> defaultSky;
         }
-        return supplier;
     }
 
     private static boolean shouldIngestSection(LevelChunkSection section, int cx, int cy, int cz) {

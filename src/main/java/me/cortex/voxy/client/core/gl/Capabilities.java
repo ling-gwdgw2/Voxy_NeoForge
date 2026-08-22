@@ -72,9 +72,11 @@ public class Capabilities {
                 #version 430
                 #extension GL_KHR_shader_subgroup_basic : require
                 #extension GL_KHR_shader_subgroup_arithmetic : require
+                #extension GL_KHR_shader_subgroup_ballot : require
                 layout(local_size_x=32) in;
                 void main() {
                     uint a = subgroupExclusiveAdd(gl_LocalInvocationIndex);
+                    uvec4 b = subgroupBallot(true);
                 }
                 """);
         } else {

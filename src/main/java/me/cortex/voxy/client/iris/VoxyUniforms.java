@@ -57,18 +57,27 @@ public class VoxyUniforms {
                 .uniformMatrix(PER_FRAME, "vxProjInv", new Inverted(VoxyUniforms::getProjection))
                 .uniformMatrix(PER_FRAME, "vxProjPrev", new PreviousMat(VoxyUniforms::getProjection));
 
-        if (IrisShaderPatch.IMPERSONATE_DISTANT_HORIZONS) {
+        if (IrisShaderPatch.isDistantShaderShadowsEnabled()) {
             uniforms
-                    .uniform1f(PER_FRAME, "dhNearPlane", () -> 0.05f)
-                    .uniform1f(PER_FRAME, "dhFarPlane", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32.0f)
+                    .uniform1f(PER_FRAME, "dhNearPlane", () -> {
+                        float near = Minecraft.getInstance().gameRenderer.getRenderDistance() <= 32.0f ? 8.0f : 16.0f;
+                        return me.cortex.voxy.client.VoxyClient.disableSodiumChunkRender() ? 0.1f : near;
+                    })
+                    .uniform1f(PER_FRAME, "dhFarPlane", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32 * 16))
                     .uniform1i(PER_FRAME, "dhRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32)
-                    .uniform1i(PER_FRAME, "dhMinRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32)
+                    .uniform1i(PER_FRAME, "dhMinRenderDistance", () -> (int) Minecraft.getInstance().gameRenderer.getRenderDistance())
                     .uniform1i(PER_FRAME, "dhMaxRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32)
-                    .uniform1f(PER_FRAME, "dhMinFogDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32.0f * 0.75f)
-                    .uniform1f(PER_FRAME, "dhMaxFogDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32.0f)
+                    .uniform1f(PER_FRAME, "dhMinFogDistance", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32 * 16 * 0.75f))
+                    .uniform1f(PER_FRAME, "dhMaxFogDistance", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32 * 16))
                     .uniformMatrix(PER_FRAME, "dhProjection", VoxyUniforms::getProjection)
                     .uniformMatrix(PER_FRAME, "dhProjectionInverse", new Inverted(VoxyUniforms::getProjection))
-                    .uniformMatrix(PER_FRAME, "dhPreviousProjection", new PreviousMat(VoxyUniforms::getProjection));
+                    .uniformMatrix(PER_FRAME, "dhPreviousProjection", new PreviousMat(VoxyUniforms::getProjection))
+                    .uniformMatrix(PER_FRAME, "dhModelView", VoxyUniforms::getModelView)
+                    .uniformMatrix(PER_FRAME, "dhModelViewInverse", new Inverted(VoxyUniforms::getModelView))
+                    .uniformMatrix(PER_FRAME, "dhPreviousModelView", new PreviousMat(VoxyUniforms::getModelView))
+                    .uniformMatrix(PER_FRAME, "dhViewProj", VoxyUniforms::getViewProjection)
+                    .uniformMatrix(PER_FRAME, "dhViewProjInverse", new Inverted(VoxyUniforms::getViewProjection))
+                    .uniformMatrix(PER_FRAME, "dhPreviousViewProj", new PreviousMat(VoxyUniforms::getViewProjection));
         }
     }
 

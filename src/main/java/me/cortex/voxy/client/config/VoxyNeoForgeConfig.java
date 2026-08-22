@@ -36,17 +36,18 @@ public class VoxyNeoForgeConfig {
     // Performance settings
     private static final ModConfigSpec.IntValue SECTION_RENDER_DISTANCE = BUILDER
             .comment("LOD section render distance (multiplied by 32 for actual chunk distance)",
-                     "Example: 16 = 512 chunks render distance")
+                    "Example: 16 = 512 chunks render distance")
             .defineInRange("sectionRenderDistance", 16, 2, 64);
 
     private static final ModConfigSpec.IntValue SERVICE_THREADS = BUILDER
             .comment("Number of background threads for LOD processing",
-                     "Default is based on CPU core count.")
-            .defineInRange("serviceThreads", Math.max((int)(CpuLayout.getCoreCount() / 1.5), 1), 1, CpuLayout.getCoreCount());
+                    "Default is based on CPU core count.")
+            .defineInRange("serviceThreads", Math.max((int) (CpuLayout.getCoreCount() / 1.5), 1), 1,
+                    CpuLayout.getCoreCount());
 
     private static final ModConfigSpec.DoubleValue SUB_DIVISION_SIZE = BUILDER
             .comment("Subdivision size for LOD rendering (28-256)",
-                     "Lower = more detailed LODs but more GPU load")
+                    "Lower = more detailed LODs but more GPU load")
             .defineInRange("subDivisionSize", 64.0, 28.0, 256.0);
 
     // Visual settings
@@ -58,6 +59,11 @@ public class VoxyNeoForgeConfig {
             .comment("Enable Screen-Space Reflections (SSR) and wave normal enhancement for LOD water")
             .define("enableWaterSSR", true);
 
+    private static final ModConfigSpec.BooleanValue ENABLE_DISTANT_SHADER_SHADOWS = BUILDER
+            .comment("Enable distant shader shadows, cloud shadows, and lighting on LODs via Iris",
+                    "Disable to save GPU performance on low-end systems.")
+            .define("enableDistantShaderShadows", true);
+
     // Advanced settings
     private static final ModConfigSpec.BooleanValue DONT_USE_SODIUM_BUILDER_THREADS = BUILDER
             .comment("Don't share threads with Sodium's chunk builder")
@@ -66,25 +72,25 @@ public class VoxyNeoForgeConfig {
     // LOD boundary buffer (overdraw/overlap)
     private static final ModConfigSpec.IntValue LOD_BOUNDARY_BUFFER = BUILDER
             .comment("LOD boundary overlap in blocks (like DH's overdraw prevention)",
-                     "Controls how much LODs overlap with vanilla chunk edges.",
-                     "Higher values = more overlap = smoother transitions but slight overdraw.",
-                     "0 = exact match (may have gaps), 1 = minimal overlap, 2-4 = smoother for fast flight")
+                    "Controls how much LODs overlap with vanilla chunk edges.",
+                    "Higher values = more overlap = smoother transitions but slight overdraw.",
+                    "0 = exact match (may have gaps), 1 = minimal overlap, 2-4 = smoother for fast flight")
             .defineInRange("lodBoundaryBuffer", 1, 0, 4);
 
     // World curvature (experimental)
     private static final ModConfigSpec.IntValue EARTH_CURVE_RATIO = BUILDER
             .comment("World curvature effect - simulates standing on a spherical planet",
-                     "0 = disabled (flat world)",
-                     "1 = real Earth curvature (6371km radius)",
-                     "Higher values = more extreme curvature (smaller planet effect)",
-                     "Valid range: 0 (off), or 50-5000. Values 1-49 are auto-corrected to 50.",
-                     "Inspired by Distant Horizons' earth curvature feature")
+                    "0 = disabled (flat world)",
+                    "1 = real Earth curvature (6371km radius)",
+                    "Higher values = more extreme curvature (smaller planet effect)",
+                    "Valid range: 0 (off), or 50-5000. Values 1-49 are auto-corrected to 50.",
+                    "Inspired by Distant Horizons' earth curvature feature")
             .defineInRange("earthCurveRatio", 0, 0, 5000);
 
     // VRAM Geometry Budget
     private static final ModConfigSpec.IntValue GEOMETRY_BUFFER_SIZE_MB = BUILDER
             .comment("VRAM Geometry Budget in MB (0 = Auto detection based on GPU VRAM, e.g. 512, 768, 1024, 1536)",
-                     "Prevents VRAM overflow and crashes on GPUs with 4GB/6GB/8GB VRAM.")
+                    "Prevents VRAM overflow and crashes on GPUs with 4GB/6GB/8GB VRAM.")
             .defineInRange("geometryBufferSizeMB", 0, 0, 2048);
 
     // World Pre-generation settings
@@ -103,7 +109,7 @@ public class VoxyNeoForgeConfig {
     // Debug settings
     private static final ModConfigSpec.BooleanValue RENDER_STATISTICS = BUILDER
             .comment("Show render statistics in F3 debug screen",
-                     "Displays LOD traversal counts, visible sections, and quad counts")
+                    "Displays LOD traversal counts, visible sections, and quad counts")
             .define("renderStatistics", false);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
@@ -132,6 +138,7 @@ public class VoxyNeoForgeConfig {
         VoxyConfig.CONFIG.earthCurveRatio = EARTH_CURVE_RATIO.get();
         VoxyConfig.CONFIG.geometryBufferSizeMB = GEOMETRY_BUFFER_SIZE_MB.get();
         VoxyConfig.CONFIG.enableWaterSSR = ENABLE_WATER_SSR.get();
+        VoxyConfig.CONFIG.enableDistantShaderShadows = ENABLE_DISTANT_SHADER_SHADOWS.get();
         VoxyConfig.CONFIG.autoPregenOnJoin = AUTO_PREGEN_ON_JOIN.get();
         VoxyConfig.CONFIG.autoPregenRadius = AUTO_PREGEN_RADIUS.get();
         VoxyConfig.CONFIG.autoPregenThreads = AUTO_PREGEN_THREADS.get();
@@ -158,6 +165,7 @@ public class VoxyNeoForgeConfig {
                 EARTH_CURVE_RATIO.set(VoxyConfig.CONFIG.earthCurveRatio);
                 GEOMETRY_BUFFER_SIZE_MB.set(VoxyConfig.CONFIG.geometryBufferSizeMB);
                 ENABLE_WATER_SSR.set(VoxyConfig.CONFIG.enableWaterSSR);
+                ENABLE_DISTANT_SHADER_SHADOWS.set(VoxyConfig.CONFIG.enableDistantShaderShadows);
                 AUTO_PREGEN_ON_JOIN.set(VoxyConfig.CONFIG.autoPregenOnJoin);
                 AUTO_PREGEN_RADIUS.set(VoxyConfig.CONFIG.autoPregenRadius);
                 AUTO_PREGEN_THREADS.set(VoxyConfig.CONFIG.autoPregenThreads);
@@ -225,5 +233,9 @@ public class VoxyNeoForgeConfig {
 
     public static int getEarthCurveRatio() {
         return EARTH_CURVE_RATIO.get();
+    }
+
+    public static boolean isDistantShaderShadowsEnabled() {
+        return ENABLE_DISTANT_SHADER_SHADOWS.get();
     }
 }

@@ -23,7 +23,9 @@ import static org.lwjgl.opengl.GL33.*;
 public class IrisShaderPatch {
     public static final int VERSION = ((IntSupplier)()->1).getAsInt();
 
-    public static final boolean IMPERSONATE_DISTANT_HORIZONS = System.getProperty("voxy.impersonateDHShader", "false").equalsIgnoreCase("true");
+    public static boolean isDistantShaderShadowsEnabled() {
+        return me.cortex.voxy.client.config.VoxyConfig.CONFIG.enableDistantShaderShadows;
+    }
 
 
     private static final class SSBODeserializer implements JsonDeserializer<Int2ObjectOpenHashMap<String>> {

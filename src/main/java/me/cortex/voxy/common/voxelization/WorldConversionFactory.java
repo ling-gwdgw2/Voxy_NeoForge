@@ -17,52 +17,60 @@ import net.minecraft.world.level.chunk.Palette;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.PalettedContainerRO;
 import net.minecraft.world.level.chunk.SingleValuePalette;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.util.WeakHashMap;
 
 public class WorldConversionFactory {
-    // MC 1.21.1: PalettedContainer.Data class is inaccessible, use reflection to access internal fields
-    private static final Field DATA_FIELD;
-    private static final Field PALETTE_FIELD;
-    private static final Field STORAGE_FIELD;
+    // MC 1.21.1: PalettedContainer.Data class is inaccessible, use high-performance MethodHandles to access internal fields
+    private static final MethodHandle DATA_GETTER;
+    private static final MethodHandle PALETTE_GETTER;
+    private static final MethodHandle STORAGE_GETTER;
 
     static {
         try {
-            DATA_FIELD = PalettedContainer.class.getDeclaredField("data");
-            DATA_FIELD.setAccessible(true);
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+            Field dataField = PalettedContainer.class.getDeclaredField("data");
+            dataField.setAccessible(true);
+            DATA_GETTER = lookup.unreflectGetter(dataField);
 
             Class<?> dataClass = Class.forName("net.minecraft.world.level.chunk.PalettedContainer$Data");
-            PALETTE_FIELD = dataClass.getDeclaredField("palette");
-            PALETTE_FIELD.setAccessible(true);
-            STORAGE_FIELD = dataClass.getDeclaredField("storage");
-            STORAGE_FIELD.setAccessible(true);
+            Field paletteField = dataClass.getDeclaredField("palette");
+            paletteField.setAccessible(true);
+            PALETTE_GETTER = lookup.unreflectGetter(paletteField);
+
+            Field storageField = dataClass.getDeclaredField("storage");
+            storageField.setAccessible(true);
+            STORAGE_GETTER = lookup.unreflectGetter(storageField);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize PalettedContainer reflection", e);
+            throw new RuntimeException("Failed to initialize PalettedContainer MethodHandles", e);
         }
     }
 
     private static Object getData(PalettedContainer<?> container) {
         try {
-            return DATA_FIELD.get(container);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to access PalettedContainer.data", e);
+            return DATA_GETTER.invoke(container);
+        } catch (Throwable t) {
+            throw new RuntimeException("Failed to access PalettedContainer.data via MethodHandle", t);
         }
     }
 
     @SuppressWarnings("unchecked")
     private static <T> Palette<T> getPalette(Object data) {
         try {
-            return (Palette<T>) PALETTE_FIELD.get(data);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to access Data.palette", e);
+            return (Palette<T>) PALETTE_GETTER.invoke(data);
+        } catch (Throwable t) {
+            throw new RuntimeException("Failed to access Data.palette via MethodHandle", t);
         }
     }
 
     private static Object getStorage(Object data) {
         try {
-            return STORAGE_FIELD.get(data);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to access Data.storage", e);
+            return STORAGE_GETTER.invoke(data);
+        } catch (Throwable t) {
+            throw new RuntimeException("Failed to access Data.storage via MethodHandle", t);
         }
     }
     private static final boolean LITHIUM_INSTALLED = ModList.get().isLoaded("lithium") || ModList.get().isLoaded("radium");

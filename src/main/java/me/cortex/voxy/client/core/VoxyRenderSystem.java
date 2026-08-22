@@ -513,4 +513,8 @@ public class VoxyRenderSystem {
     public WorldEngine getEngine() {
         return this.worldIn;
     }
+
+    public AbstractRenderPipeline getPipeline() {
+        return this.pipeline;
+    }
 }

@@ -46,6 +46,7 @@ import static org.lwjgl.opengl.NVRepresentativeFragmentTest.GL_REPRESENTATIVE_FR
 public class MDICSectionRenderer extends AbstractSectionRenderer<MDICViewport, BasicSectionGeometryData> {
     public static final Factory<MDICViewport, BasicSectionGeometryData> FACTORY = AbstractSectionRenderer.Factory.create(MDICSectionRenderer.class);
 
+    private static final int CMDGEN_WORKGROUP_SIZE = 64;
     private static final int TRANSLUCENT_OFFSET = 400_000;//in draw calls
     private static final int TEMPORAL_OFFSET = 500_000;//in draw calls
     private static final int STATISTICS_BUFFER_BINDING = 8;
@@ -53,6 +54,7 @@ public class MDICSectionRenderer extends AbstractSectionRenderer<MDICViewport, B
     private final Shader translucentTerrainShader;
 
     private final Shader commandGenShader = Shader.make()
+            .define("CMDGEN_WORKGROUP_SIZE", CMDGEN_WORKGROUP_SIZE)
             .define("TRANSLUCENT_WRITE_BASE", 1024)
             .define("TEMPORAL_OFFSET", TEMPORAL_OFFSET)
 
@@ -66,6 +68,7 @@ public class MDICSectionRenderer extends AbstractSectionRenderer<MDICViewport, B
             .compile();
 
     private final Shader prepShader = Shader.make()
+            .define("CMDGEN_WORKGROUP_SIZE", CMDGEN_WORKGROUP_SIZE)
             .add(ShaderType.COMPUTE, "voxy:lod/gl46/prep.comp")
             .compile();
 
@@ -81,11 +84,12 @@ public class MDICSectionRenderer extends AbstractSectionRenderer<MDICViewport, B
             .compile();
 
     private final Shader translucentGenShader = Shader.make()
-            .add(ShaderType.COMPUTE, "voxy:lod/gl46/buildtranslucents.comp")
+            .define("CMDGEN_WORKGROUP_SIZE", CMDGEN_WORKGROUP_SIZE)
             .define("TRANSLUCENT_WRITE_BASE", 1024)//The size of the prefix sum array
             .define("TRANSLUCENT_DISTANCE_BUFFER_BINDING", 5)
             .define("TRANSLUCENT_OFFSET", TRANSLUCENT_OFFSET)
-
+            .defineIf("USE_SUBGROUPS", Capabilities.INSTANCE.subgroup)
+            .add(ShaderType.COMPUTE, "voxy:lod/gl46/buildtranslucents.comp")
             .compile();
 
     private final GlBuffer uniform = new GlBuffer(1024).zero();//TODO move to viewport?

@@ -52,6 +52,10 @@ public class VoxyConfig {
     // LOD Water & Translucent Reflection (Screen-Space Reflection & wave normal enhancement)
     public boolean enableWaterSSR = true;
 
+    // Distant Shader Shadows & Lighting (Cloud shadows, sunlight attenuation on LODs via Iris)
+    // Can be disabled to save performance on low-end GPUs
+    public boolean enableDistantShaderShadows = true;
+
     // World Pre-generation settings
     public boolean autoPregenOnJoin = false;
     public int autoPregenRadius = 32;
