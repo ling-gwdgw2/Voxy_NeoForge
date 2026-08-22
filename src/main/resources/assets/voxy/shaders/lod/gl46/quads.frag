@@ -77,6 +77,31 @@ vec2 getBaseUV() {
 }
 
 
+// 4x4 Bayer Dithering Matrix for smooth LOD boundary transitions (inspired by Distant Horizons)
+float bayerMatrix4x4(vec2 st) {
+    int x = int(mod(st.x, 4.0));
+    int y = int(mod(st.y, 4.0));
+    const float bayer4x4[16] = float[16](
+         0.0/16.0,  8.0/16.0,  2.0/16.0, 10.0/16.0,
+        12.0/16.0,  4.0/16.0, 14.0/16.0,  6.0/16.0,
+         3.0/16.0, 11.0/16.0,  1.0/16.0,  9.0/16.0,
+        15.0/16.0,  7.0/16.0, 13.0/16.0,  5.0/16.0
+    );
+    return bayer4x4[y * 4 + x];
+}
+
+// Natural surface micro-variation (breaks up flat plastic look on distant terrain)
+float hash21(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+}
+
+void applyNaturalMicroVariation(inout vec3 rgb, vec2 screenPos) {
+    float noise = hash21(floor(screenPos * 0.5)) * 0.05 - 0.025; // +/- 2.5% subtle organic surface noise
+    rgb = clamp(rgb + vec3(noise), 0.0, 1.0);
+}
+
 #ifdef PATCHED_SHADER
 struct VoxyFragmentParameters {
     //TODO: pass in derivative data
@@ -187,6 +212,7 @@ void main() {
 
     #ifndef PATCHED_SHADER
     colour = computeColour(texPos, colour);
+    applyNaturalMicroVariation(colour.rgb, gl_FragCoord.xy);
 
     #ifdef TRANSLUCENT
     #ifdef ENABLE_WATER_SSR
