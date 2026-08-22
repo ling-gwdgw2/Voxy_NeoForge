@@ -43,9 +43,19 @@ void main() {
         discard;
     }
     #ifdef USE_ENV_FOG
-    if (fogColour.a>0.0){
-        float fogLerp = clamp(fma(length(point.xyz),endParams.x,endParams.y),0,endParams.z);//512 is 32*16 which is the render distance in blocks
-        colour.rgb = mix(colour.rgb, fogColour.rgb, fogLerp*fogColour.a);
+    if (fogColour.a > 0.0) {
+        float worldDist = length(point.xyz);
+        // Distance fog: Exponential squared falloff for natural atmospheric horizon haze (inspired by Distant Horizons)
+        float normDist = clamp(fma(worldDist, endParams.x, endParams.y), 0.0, 1.0);
+        float distFog = 1.0 - exp(-normDist * normDist * 3.5);
+
+        // Volumetric Height Fog: fog gathers in low valleys/canyons and thins on high mountain peaks
+        // endParams.w represents player camera world Y altitude
+        float worldY = point.y + endParams.w;
+        float heightFactor = clamp(1.0 - (worldY - 62.0) / 100.0, 0.25, 1.35);
+
+        float finalFog = clamp(distFog * heightFactor, 0.0, endParams.z);
+        colour.rgb = mix(colour.rgb, fogColour.rgb, finalFog * fogColour.a);
     }
     #endif
     #else

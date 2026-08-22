@@ -104,14 +104,15 @@ public class NormalRenderPipeline extends AbstractRenderPipeline {
     @Override
     protected void finish(Viewport<?> viewport, int sourceFrameBuffer, int srcWidth, int srcHeight) {
         this.finalBlit.bind();
-        // MC 1.21.1 / Sodium 0.6.x: Environmental fog disabled
-        // FogParameters.environmental*() methods don't exist in Sodium 0.6.x
-        // RenderSystem.getShaderFog*() returns standard fog (underwater/lava) not environmental fog
-        // TODO: Research Sodium 0.6.x environmental fog API or implement custom distance-based fog
         if (this.useEnvFog) {
-            // Disable fog uniforms - set to zero (no fog effect)
-            glUniform4f(4, 0, 0, 0, 0);
-            glUniform4f(5, 0, 0, 0, 0);
+            float[] fogCol = com.mojang.blaze3d.systems.RenderSystem.getShaderFogColor();
+            float fogStart = (float) (net.minecraft.client.Minecraft.getInstance().options.getEffectiveRenderDistance() * 16.0f);
+            float fogEnd = (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32.0f * 16.0f);
+            float cameraY = (float) net.minecraft.client.Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().y;
+
+            float invRange = 1.0f / Math.max(1.0f, fogEnd - fogStart);
+            glUniform4f(4, invRange, -fogStart * invRange, 1.0f, cameraY);
+            glUniform4f(5, fogCol[0], fogCol[1], fogCol[2], fogCol[3] > 0 ? fogCol[3] : 1.0f);
         }
 
         glBindTextureUnit(3, this.colourSSAOTex.id);
