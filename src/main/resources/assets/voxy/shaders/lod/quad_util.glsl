@@ -198,10 +198,19 @@ vec4 getQuadCornerPos(in QuadData quad, uint cornerId) {
     vec2 cornerMask = vec2((cornerId>>1)&1u, cornerId&1u)*quad.lodScale;
     vec3 point = quad.basePoint + swizzelDataAxis(quad.axis,vec3(quad.quadSizeAddin*cornerMask,0));
 
+    // Micro-Offset Z-Fighting Elimination (inspired by Distant Horizons)
+    // Applies sub-millimeter normal displacement and clip-space depth bias
+    // to ensure adjacent LOD sections and coplanar cliff faces render with zero flickering
+    vec3 microOffset = swizzelDataAxis(quad.axis, vec3(0.0, 0.0, 0.0003 * quad.lodScale));
+    point += microOffset;
+
     // Apply world curvature before MVP transformation
     point = applyWorldCurvature(point);
 
     vec4 pos = MVP * vec4(point, 1.0f);
+    // Perspective depth bias (eliminates float depth-buffer rounding z-fight at long range)
+    pos.z -= 0.000003f * pos.w;
+
     pos.xy += taaOffset*pos.w;
     return pos;
 }
