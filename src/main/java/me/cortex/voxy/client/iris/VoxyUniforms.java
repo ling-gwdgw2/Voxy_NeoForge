@@ -60,12 +60,13 @@ public class VoxyUniforms {
         if (IrisShaderPatch.isDistantShaderShadowsEnabled()) {
             uniforms
                     .uniform1f(PER_FRAME, "dhNearPlane", () -> {
-                        float near = Minecraft.getInstance().gameRenderer.getRenderDistance() <= 32.0f ? 8.0f : 16.0f;
-                        return me.cortex.voxy.client.VoxyClient.disableSodiumChunkRender() ? 0.1f : near;
+                        int rdChunks = Minecraft.getInstance().options.getEffectiveRenderDistance();
+                        float vanillaDistanceBlocks = rdChunks * 16.0f;
+                        return me.cortex.voxy.client.VoxyClient.disableSodiumChunkRender() ? 0.1f : vanillaDistanceBlocks;
                     })
                     .uniform1f(PER_FRAME, "dhFarPlane", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32 * 16))
                     .uniform1i(PER_FRAME, "dhRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32)
-                    .uniform1i(PER_FRAME, "dhMinRenderDistance", () -> (int) Minecraft.getInstance().gameRenderer.getRenderDistance())
+                    .uniform1i(PER_FRAME, "dhMinRenderDistance", () -> Minecraft.getInstance().options.getEffectiveRenderDistance())
                     .uniform1i(PER_FRAME, "dhMaxRenderDistance", () -> VoxyConfig.CONFIG.sectionRenderDistance * 32)
                     .uniform1f(PER_FRAME, "dhMinFogDistance", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32 * 16 * 0.75f))
                     .uniform1f(PER_FRAME, "dhMaxFogDistance", () -> (float) (VoxyConfig.CONFIG.sectionRenderDistance * 32 * 16))

@@ -61,7 +61,7 @@ uint getFace() {
 
 #ifdef PATCHED_SHADER
 vec2 getLightmap() {
-    return clamp(vec2((interData.y>>4)&0xFu, interData.y&0xFu)/15, vec2(8.0f/256), vec2(248.0f/256));
+    return clamp((vec2((interData.y>>4)&0xFu, interData.y&0xFu) * 16.0 + 8.0) / 256.0, vec2(8.0f/256.0), vec2(248.0f/256.0));
 }
 #endif
 

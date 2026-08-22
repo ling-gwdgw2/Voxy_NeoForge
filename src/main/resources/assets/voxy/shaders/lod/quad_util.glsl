@@ -117,7 +117,13 @@ uvec3 makeRemainingAttributes(const in BlockModel model, const in Quad quad, uin
         addin = encodedData;
     }
 
-    tinting.rgb *= computeDirectionalFaceTint(isShaded, face);
+    float faceTint = computeDirectionalFaceTint(isShaded, face);
+    // Micro Ambient Occlusion: apply subtle depth gradient to vertical side faces
+    // to simulate soft ambient crevice shadows matching Vanilla/Sodium Smooth Lighting
+    if (hasAO && face > 1u) {
+        faceTint *= 0.94;
+    }
+    tinting.rgb *= faceTint;
 
     attributes.x = packVec4(tinting);
     attributes.y = conditionalTinting;
